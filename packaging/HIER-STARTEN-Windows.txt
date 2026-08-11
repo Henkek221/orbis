@@ -1,0 +1,11 @@
+MAPPY STARTEN
+=============
+
+1. MAPPY STARTEN.cmd doppelklicken.
+2. Falls Windows warnt: Weitere Informationen > Trotzdem ausführen.
+3. Mappy öffnet sich automatisch im Browser.
+
+Wenn Mappy beim ersten Start nach einer config.json fragt, zieh die separat
+erhaltene Datei einfach in das Mappy-Fenster. Sie wird nur lokal gespeichert.
+
+Das schwarze Mappy-Fenster während der Nutzung geöffnet lassen.

@@ -1,0 +1,57 @@
+name: Fehlerbericht
+description: Melde einen Fehler beim Start, Export oder im Viewer.
+title: "[Fehler] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke fürs Testen. Bitte niemals `config.json` oder Tokens hochladen.
+  - type: dropdown
+    id: system
+    attributes:
+      label: Betriebssystem
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "z. B. macOS 15.5 oder Windows 11"
+    validations:
+      required: true
+  - type: input
+    id: place
+    attributes:
+      label: Ort
+      placeholder: "z. B. Santa Monica Pier"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Was hast du gemacht?
+      description: Beschreibe die letzten Schritte vor dem Fehler.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Was ist passiert?
+      description: Bitte die sichtbare Fehlermeldung möglichst genau übernehmen.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Was hättest du erwartet?
+  - type: checkboxes
+    id: secret-check
+    attributes:
+      label: Datenschutz
+      options:
+        - label: Ich habe geprüft, dass keine config.json und keine Tokens angehängt sind.
+          required: true

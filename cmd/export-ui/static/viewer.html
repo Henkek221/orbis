@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fff6f4" />
+    <title>Mappy — 3D model viewer</title>
+    <link rel="stylesheet" href="/viewer.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.180.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main class="viewer-shell">
+      <div id="viewport" class="viewport" aria-label="3D scan viewer"></div>
+
+      <header class="viewer-header">
+        <a href="/" class="back-link">Mappy</a>
+        <div>
+          <span class="viewer-kicker">3D model viewer</span>
+          <strong id="scanTitle">Loading export…</strong>
+        </div>
+      </header>
+
+      <aside class="viewer-panel" aria-label="Viewer controls">
+        <div class="viewer-status">
+          <span id="statusDot" class="status-dot is-loading"></span>
+          <div>
+            <strong id="viewerStatus">Loading geometry</strong>
+            <span id="viewerStats">Preparing the viewer…</span>
+          </div>
+        </div>
+
+        <button id="openModelButton" class="open-model-button" type="button">Open another OBJ</button>
+        <button id="spawnButton" class="spawn-button" type="button" disabled>Set vehicle spawn</button>
+        <button id="driveButton" class="drive-button" type="button" disabled>Drive from this spawn</button>
+        <div class="button-row">
+          <button id="cameraButton" class="secondary-button" type="button" disabled>Camera: chase</button>
+          <button id="overviewButton" class="secondary-button" type="button" disabled>Overview</button>
+        </div>
+
+        <div class="viewer-options">
+          <label class="axis-option">
+            <span>
+              <strong>Model up axis</strong>
+              <small>Change this if the model lies on its side.</small>
+            </span>
+            <select id="axisSelect" aria-label="Model up axis" disabled>
+              <option value="auto">Auto</option>
+              <option value="y">Y up</option>
+              <option value="z">Z up</option>
+            </select>
+          </label>
+          <label>
+            <input id="smoothToggle" type="checkbox" checked />
+            <span>
+              <strong>Smooth surfaces</strong>
+              <small>Recalculates shading, not road geometry.</small>
+            </span>
+          </label>
+          <label>
+            <input id="wireframeToggle" type="checkbox" />
+            <span>
+              <strong>Show polygon mesh</strong>
+              <small>Useful for spotting rough roads and seams.</small>
+            </span>
+          </label>
+          <div class="time-control">
+            <div class="time-control-heading">
+              <strong>Time of day</strong>
+              <output id="timeValue" for="timeInput">14:00</output>
+            </div>
+            <input id="timeInput" type="range" min="0" max="24" step="0.25" value="14" aria-label="Time of day" />
+            <div class="time-scale" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+          </div>
+          <label>
+            <input id="headlightToggle" type="checkbox" checked />
+            <span>
+              <strong>Headlights</strong>
+              <small>Vehicle lights stay under your control.</small>
+            </span>
+          </label>
+        </div>
+
+        <a class="vehicle-credit" href="https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/ToyCar" target="_blank" rel="noopener">Toy Car model · CC0</a>
+      </aside>
+
+      <div id="spawnHelp" class="spawn-help" hidden>
+        <strong>Place the vehicle yourself</strong>
+        <span>Orbit to choose its direction, then click a flat road surface.</span>
+      </div>
+
+      <div id="driveHelp" class="drive-help" hidden>
+        <strong id="speedValue">0 km/h</strong>
+        <span><kbd>W A S D</kbd> drive</span>
+        <span><kbd>Shift</kbd> boost</span>
+        <span><kbd>C</kbd> camera</span>
+        <span><kbd>Esc</kbd> park</span>
+      </div>
+
+      <div id="loadingPanel" class="loading-panel">
+        <span class="loading-line"><span id="loadingFill"></span></span>
+        <strong>Building the driveable preview</strong>
+        <p id="loadingCopy">Loading OBJ, materials, and textures.</p>
+      </div>
+
+      <section id="dropZone" class="drop-zone" aria-label="Open a local OBJ model" hidden>
+        <div class="drop-card">
+          <button id="dropDismiss" class="drop-dismiss" type="button" hidden>Back to model</button>
+          <span class="drop-file-mark" aria-hidden="true">OBJ</span>
+          <span class="drop-kicker">Local model</span>
+          <strong id="dropTitle">Drop an OBJ here</strong>
+          <p id="dropCopy">Add the OBJ with its MTL and texture files, or drop the whole export folder.</p>
+          <button id="dropButton" type="button">Choose model files</button>
+          <small>Nothing is uploaded. JPG and PNG textures are supported.</small>
+        </div>
+      </section>
+
+      <input id="modelFiles" type="file" accept=".obj,.mtl,.jpg,.jpeg,.png,.webp,.bmp,.gif,.heic" multiple hidden />
+    </main>
+
+    <script type="module" src="/viewer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,53 @@
+name: Mappy Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Versionsname für die ZIP-Dateien
+        required: true
+        default: test
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Quellcode laden
+        uses: actions/checkout@v4
+
+      - name: Go einrichten
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Tests ausführen
+        run: go test -mod=vendor ./...
+
+      - name: Pakete bauen
+        env:
+          VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
+        run: ./scripts/build_mappy_releases.sh "$VERSION"
+
+      - name: Pakete als Workflow-Artefakt speichern
+        uses: actions/upload-artifact@v4
+        with:
+          name: mappy-${{ github.run_number }}
+          path: dist/mappy/releases/*.zip
+          if-no-files-found: error
+
+      - name: GitHub Release erstellen
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --title "Mappy ${GITHUB_REF_NAME}" \
+            dist/mappy/releases/*.zip

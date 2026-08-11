@@ -1,0 +1,20 @@
+# Private Laufzeitkonfiguration
+config.json
+
+# Von Mappy erzeugte Daten
+cache/
+downloaded_files/
+dist/
+bin/
+*.log
+
+# Lokale Prüf- und Aufnahme-Artefakte
+.codex-audit/
+docs/*.mov
+docs/*.mp4
+
+# Betriebssystem und Editoren
+.DS_Store
+*.DS_Store
+.idea/
+.vscode/

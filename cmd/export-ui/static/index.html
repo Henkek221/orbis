@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fff6f4" />
+    <title>Mappy — Export a place</title>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="map-stage" aria-label="Choose an area on the map">
+        <div id="map" aria-label="Map"></div>
+
+        <div class="map-topbar">
+          <a class="wordmark" href="#" aria-label="Mappy home">Mappy</a>
+
+          <div class="search-wrap">
+            <form id="searchForm" class="search" role="search">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <label class="sr-only" for="searchInput">Search for a place or address</label>
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Search a place or address"
+                autocomplete="off"
+                aria-controls="searchResults"
+                aria-expanded="false"
+              />
+              <span id="searchSpinner" class="search-spinner" hidden aria-hidden="true"></span>
+            </form>
+            <div id="searchResults" class="search-results" role="listbox" hidden></div>
+          </div>
+        </div>
+
+        <button id="coverageToggle" class="coverage-toggle" type="button" aria-pressed="true" disabled>
+          <span class="coverage-swatch" aria-hidden="true"></span>
+          <span>
+            <strong>3D coverage</strong>
+            <small id="coverageCount">Loading areas…</small>
+          </span>
+          <i data-lucide="eye" aria-hidden="true"></i>
+        </button>
+
+        <div id="drawHint" class="draw-hint" hidden>
+          <span>Drag across the map to mark an area</span>
+          <button id="cancelDrawButton" type="button">Cancel</button>
+        </div>
+      </section>
+
+      <aside class="panel" aria-label="Export setup">
+        <header class="panel-header">
+          <p class="eyebrow">3D map export</p>
+          <h1>Take a place<br />with you.</h1>
+          <p class="intro">Find a location, frame the part you need, and take it home as a 3D model or a Minecraft world.</p>
+        </header>
+
+        <div class="perk-grid" aria-label="What an export contains">
+          <ul class="perk-chips">
+            <li class="chip chip-green">OBJ</li>
+            <li class="chip chip-pink">MTL</li>
+            <li class="chip chip-cream">JPG</li>
+            <li class="chip chip-orange">Minecraft</li>
+          </ul>
+          <div class="perk perk-lime">
+            <strong>Real geometry</strong>
+            <span>Houses straight from the scan</span>
+          </div>
+          <div class="perk perk-green">
+            <strong>Block world</strong>
+            <span>Every block from a real photo pixel</span>
+          </div>
+          <div class="perk perk-pink">
+            <strong>Stays local</strong>
+            <span>No upload, no account</span>
+          </div>
+          <div class="perk perk-orange">
+            <strong>Drive mode</strong>
+            <span>Explore the scan in the browser</span>
+          </div>
+        </div>
+
+        <section class="step" aria-labelledby="areaHeading">
+          <div class="step-heading">
+            <span class="step-number">1</span>
+            <div>
+              <h2 id="areaHeading">Choose an area</h2>
+              <p id="areaPrompt">Green tiles have confirmed Apple 3D mesh data.</p>
+            </div>
+          </div>
+
+          <button id="drawButton" class="draw-button" type="button">
+            <i data-lucide="scan" aria-hidden="true"></i>
+            <span>Mark an area on the map</span>
+          </button>
+
+          <div id="selectionCard" class="selection-card" hidden>
+            <div class="selection-copy">
+              <span class="selection-topline">
+                <span class="selection-kicker">Selected</span>
+                <span id="coveragePill" class="coverage-pill">Checking 3D…</span>
+              </span>
+              <strong id="selectionTitle">Map area</strong>
+              <span id="selectionSize">Calculating size…</span>
+            </div>
+            <button id="redrawButton" class="text-button" type="button">Change</button>
+          </div>
+        </section>
+
+        <section class="step" aria-labelledby="nameHeading">
+          <div class="step-heading">
+            <span class="step-number">2</span>
+            <div>
+              <h2 id="nameHeading">Name the export</h2>
+              <p>We suggest a useful name from the selected place. You can change it.</p>
+            </div>
+          </div>
+
+          <label class="field" for="nameInput">
+            <span>Export name</span>
+            <input id="nameInput" type="text" maxlength="120" placeholder="Choose an area first" disabled />
+          </label>
+        </section>
+
+        <section class="step" aria-labelledby="formatHeading">
+          <div class="step-heading">
+            <span class="step-number">3</span>
+            <div>
+              <h2 id="formatHeading">Pick the formats</h2>
+              <p>Both come from the same scan, so one run can write both.</p>
+            </div>
+          </div>
+
+          <div class="format-grid">
+            <label class="format-card is-on" for="objInput">
+              <input id="objInput" type="checkbox" checked />
+              <span class="format-icon" aria-hidden="true"><i data-lucide="box"></i></span>
+              <span class="format-copy">
+                <strong>3D model</strong>
+                <small>OBJ, MTL and textures for Blender, Unreal or the built-in viewer.</small>
+              </span>
+            </label>
+
+            <label class="format-card" for="minecraftInput">
+              <input id="minecraftInput" type="checkbox" />
+              <span class="format-icon" aria-hidden="true"><i data-lucide="boxes"></i></span>
+              <span class="format-copy">
+                <strong>Minecraft world</strong>
+                <small>The real buildings turned into blocks. Copy the folder into your saves.</small>
+              </span>
+            </label>
+          </div>
+
+          <label class="field" id="blockSizeField" for="blockSizeInput" hidden>
+            <span>Block size</span>
+            <select id="blockSizeInput">
+              <option value="1" selected>1 block = 1 metre · true scale</option>
+              <option value="0.5">1 block = 0.5 metre · four times the detail</option>
+              <option value="2">1 block = 2 metres · quick draft</option>
+            </select>
+          </label>
+        </section>
+
+        <details class="advanced">
+          <summary>
+            <span>Advanced settings</span>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="advanced-body">
+            <label class="field" for="zoomInput">
+              <span>Detail level</span>
+              <select id="zoomInput">
+                <option value="18">Draft · smaller files</option>
+                <option value="19">Balanced</option>
+                <option value="20" selected>Source quality · largest files</option>
+              </select>
+            </label>
+
+            <label class="field" for="heightInput">
+              <span>Height layers</span>
+              <input id="heightInput" type="number" min="1" max="128" value="24" />
+            </label>
+
+            <label class="toggle">
+              <input id="parallelInput" type="checkbox" checked />
+              <span>Download several tiles at once</span>
+            </label>
+
+            <div class="technical-readout" aria-label="Selection details">
+              <span id="coordinateSummary">No area selected</span>
+              <span id="requestSummary"></span>
+            </div>
+          </div>
+        </details>
+
+        <div id="estimate" class="notice" role="status">Choose an area to continue.</div>
+
+        <button id="exportButton" class="export-button" type="button" disabled>
+          <span>Export</span>
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+        </button>
+
+        <a class="local-viewer-link" href="/viewer.html">
+          <i data-lucide="box" aria-hidden="true"></i>
+          <span>
+            <strong>Open an existing OBJ</strong>
+            <small>Drop a model, its material file, and textures into the viewer.</small>
+          </span>
+          <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+        </a>
+
+        <section id="jobCard" class="job-card" aria-label="Export status" hidden>
+          <div class="job-status">
+            <span id="jobIcon" class="job-icon"><i data-lucide="loader-circle" aria-hidden="true"></i></span>
+            <div>
+              <strong id="jobState">Preparing export…</strong>
+              <span id="jobCount">No files written yet</span>
+            </div>
+          </div>
+          <div id="progressBar" class="progress" role="progressbar" aria-label="Tile loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+          <a id="outputPath" class="output-path" href="#" hidden>
+            <i data-lucide="folder" aria-hidden="true"></i>
+            <span></span>
+          </a>
+          <a id="worldPath" class="output-path is-world" href="#" hidden>
+            <i data-lucide="boxes" aria-hidden="true"></i>
+            <span></span>
+          </a>
+          <p id="worldHint" class="world-hint" hidden>
+            Copy this folder into <code>%APPDATA%\.minecraft\saves</code> and open it in Minecraft Java Edition.
+          </p>
+          <a id="viewerLink" class="viewer-link" href="#" target="_blank" rel="noopener" hidden>
+            <i data-lucide="car-front" aria-hidden="true"></i>
+            <span>Drive through this scan</span>
+          </a>
+          <details class="log-details">
+            <summary>Technical log</summary>
+            <pre id="jobLog">Waiting for the export to start.</pre>
+          </details>
+        </section>
+      </aside>
+    </main>
+
+    <div id="setupGate" class="setup-gate" role="dialog" aria-modal="true" aria-labelledby="setupTitle" aria-busy="true">
+      <section class="setup-card">
+        <div class="setup-brand" aria-hidden="true">Mappy</div>
+
+        <div id="setupChecking" class="setup-checking">
+          <span class="setup-pulse" aria-hidden="true"></span>
+          <div>
+            <h2 id="setupTitle">Mappy wird vorbereitet</h2>
+            <p>Lokale 3D-Kartenverbindung wird geprüft.</p>
+          </div>
+        </div>
+
+        <div id="setupImport" class="setup-import" hidden>
+          <p class="setup-kicker">Einmalige Einrichtung</p>
+          <h2>Konfiguration hier ablegen.</h2>
+          <p class="setup-copy">Zieh deine <strong>config.json</strong> in dieses Fenster. Die Datei bleibt auf diesem Computer.</p>
+
+          <button id="setupDropzone" class="setup-dropzone" type="button">
+            <span class="setup-file" aria-hidden="true"><i data-lucide="file-key-2"></i></span>
+            <span>
+              <strong>config.json auswählen</strong>
+              <small>oder einfach hier hineinziehen</small>
+            </span>
+          </button>
+          <input id="setupFileInput" hidden type="file" accept=".json,application/json" />
+          <p id="setupStatus" class="setup-status" role="status">Mappy speichert sie nur lokal neben dem Programm.</p>
+
+          <div class="setup-alt">
+            <p>Keine config.json und keinen Mac? Mappy liest den Wert auch direkt aus einer Apple-<code>GeoServices</code>-Datei.</p>
+            <form id="setupScanForm" class="setup-scan">
+              <label class="sr-only" for="setupScanPath">Pfad zur GeoServices-Datei</label>
+              <input id="setupScanPath" type="text" spellcheck="false" placeholder="C:\Pfad\zu\GeoServices" />
+              <button type="submit">Auslesen</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="liveRegion" class="sr-only" aria-live="polite"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
