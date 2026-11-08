@@ -10,10 +10,10 @@ package, or a Minecraft world. It runs locally as a command-line tool, a Go libr
 browser UI. No account, no upload.
 
 ```bash
-orbis export --place "Space Needle, Seattle" --size 250
+orbis export --place "Brandenburger Tor" --size 200
 ```
 
-![The Space Needle exported with Orbis and rendered in SceneKit](docs/images/space-needle.png)
+![Brandenburger Tor exported with Orbis: textured mesh plus Apple's splat trees, rendered in three.js](docs/images/berlin.png)
 
 > [!IMPORTANT]
 > Orbis is an experimental research project. It uses Apple's undocumented map
@@ -52,7 +52,7 @@ once (see [Configuration](#configuration)).
 | --- | --- | --- | --- |
 | **GLB** (glTF 2.0) | `glb` *(default)* | Unity, Unreal, Godot, Blender, three.js, Babylon, PlayCanvas | One file, embedded JPEG textures, metres, +Y up, unlit photo materials (`KHR_materials_unlit`) |
 | **Gaussian splats** | `splats` *(default)* | SuperSplat, three.js, Babylon, PlayCanvas, Unity/Unreal splat plugins | Apple's soft triangles (newer regions) as 3DGS PLY, same frame as the GLB |
-| **USDZ** / USDA | `usdz` | Xcode, RealityKit, Reality Composer, Quick Look, visionOS | `UsdPreviewSurface`; the `.usdz` is packaged with Apple's `usdzip` (macOS), elsewhere you get `.usda` + `textures/` |
+| **USDZ** / USDA | `usdz` | Xcode, RealityKit, Reality Composer, Quick Look, visionOS | `UsdPreviewSurface`; the `.usdz` is packaged with Apple's `usdzip` (macOS), elsewhere you get `.usda` + `textures/`. Quick Look cannot blend splats, so USD keeps only the vegetation splats |
 | **OBJ** | `obj` | Any DCC tool | OBJ + MTL + one JPEG per tile; Z up (east-north-up) |
 | **Minecraft** | `minecraft` | Java Edition 1.20.1+ worlds | Voxelized from the real mesh and photo colours, see [Minecraft](#minecraft-worlds) |
 
