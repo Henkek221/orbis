@@ -1,4 +1,4 @@
-package mappy
+package orbis
 
 import (
 	"errors"
@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/Henkek221/mappy/pkg/fly"
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/fly/c3mm"
-	"github.com/Henkek221/mappy/pkg/mps"
-	"github.com/Henkek221/mappy/pkg/mth"
-	"github.com/Henkek221/mappy/pkg/web"
+	"github.com/Henkek221/orbis/pkg/fly"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/fly/c3mm"
+	"github.com/Henkek221/orbis/pkg/mps"
+	"github.com/Henkek221/orbis/pkg/mth"
+	"github.com/Henkek221/orbis/pkg/web"
 )
 
 // Options says where a client finds its configuration and keeps its cache.

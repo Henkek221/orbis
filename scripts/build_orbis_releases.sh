@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DIST="$ROOT/dist/mappy"
+DIST="$ROOT/dist/orbis"
 VERSION="${1:-dev}"
 
 rm -rf "$DIST"
@@ -13,22 +13,22 @@ build_go() {
   local goarch="$2"
   local output="$3"
   GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
-    go build -mod=vendor -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$output" ./cmd/mappy
+    go build -mod=vendor -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$output" ./cmd/orbis
 }
 
 cd "$ROOT"
 
-build_go darwin arm64 "$DIST/work/mappy-darwin-arm64"
-build_go darwin amd64 "$DIST/work/mappy-darwin-amd64"
-mkdir -p "$DIST/work/mac/Mappy.app/Contents/MacOS"
+build_go darwin arm64 "$DIST/work/orbis-darwin-arm64"
+build_go darwin amd64 "$DIST/work/orbis-darwin-amd64"
+mkdir -p "$DIST/work/mac/Orbis.app/Contents/MacOS"
 if command -v lipo >/dev/null 2>&1; then
-  lipo -create "$DIST/work/mappy-darwin-arm64" "$DIST/work/mappy-darwin-amd64" \
-    -output "$DIST/work/mac/Mappy.app/Contents/MacOS/Mappy"
+  lipo -create "$DIST/work/orbis-darwin-arm64" "$DIST/work/orbis-darwin-amd64" \
+    -output "$DIST/work/mac/Orbis.app/Contents/MacOS/Orbis"
 else
-  cp "$DIST/work/mappy-darwin-arm64" "$DIST/work/mac/Mappy.app/Contents/MacOS/Mappy"
+  cp "$DIST/work/orbis-darwin-arm64" "$DIST/work/mac/Orbis.app/Contents/MacOS/Orbis"
 fi
-chmod +x "$DIST/work/mac/Mappy.app/Contents/MacOS/Mappy"
-cat > "$DIST/work/mac/Mappy.app/Contents/Info.plist" <<'PLIST'
+chmod +x "$DIST/work/mac/Orbis.app/Contents/MacOS/Orbis"
+cat > "$DIST/work/mac/Orbis.app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -36,15 +36,15 @@ cat > "$DIST/work/mac/Mappy.app/Contents/Info.plist" <<'PLIST'
   <key>CFBundleDevelopmentRegion</key>
   <string>de</string>
   <key>CFBundleDisplayName</key>
-  <string>Mappy</string>
+  <string>Orbis</string>
   <key>CFBundleExecutable</key>
-  <string>Mappy</string>
+  <string>Orbis</string>
   <key>CFBundleIdentifier</key>
-  <string>local.mappy.app</string>
+  <string>local.orbis.app</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
-  <string>Mappy</string>
+  <string>Orbis</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
@@ -59,35 +59,35 @@ cat > "$DIST/work/mac/Mappy.app/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 if command -v codesign >/dev/null 2>&1; then
-  xattr -cr "$DIST/work/mac/Mappy.app"
-  codesign --force --deep --sign - "$DIST/work/mac/Mappy.app"
+  xattr -cr "$DIST/work/mac/Orbis.app"
+  codesign --force --deep --sign - "$DIST/work/mac/Orbis.app"
 fi
 cp packaging/HIER-STARTEN-macOS.txt "$DIST/work/mac/HIER STARTEN.txt"
 cp DISTRIBUTION.md "$DIST/work/mac/README.md"
 cp CREDITS.md "$DIST/work/mac/CREDITS.md"
-(cd "$DIST/work/mac" && zip -qry "$DIST/releases/mappy-${VERSION}-mac.zip" .)
+(cd "$DIST/work/mac" && zip -qry "$DIST/releases/orbis-${VERSION}-mac.zip" .)
 
 mkdir -p "$DIST/work/windows"
-build_go windows amd64 "$DIST/work/windows/Mappy.exe"
-cp "packaging/MAPPY STARTEN.cmd" "$DIST/work/windows/MAPPY STARTEN.cmd"
+build_go windows amd64 "$DIST/work/windows/Orbis.exe"
+cp "packaging/ORBIS STARTEN.cmd" "$DIST/work/windows/ORBIS STARTEN.cmd"
 cp packaging/HIER-STARTEN-Windows.txt "$DIST/work/windows/HIER STARTEN.txt"
 cp config.example.json "$DIST/work/windows/config.example.json"
 cp DISTRIBUTION.md "$DIST/work/windows/README.md"
 cp CREDITS.md "$DIST/work/windows/CREDITS.md"
-(cd "$DIST/work/windows" && zip -qry "$DIST/releases/mappy-${VERSION}-windows.zip" .)
+(cd "$DIST/work/windows" && zip -qry "$DIST/releases/orbis-${VERSION}-windows.zip" .)
 
 mkdir -p "$DIST/work/linux-x64" "$DIST/work/linux-arm64"
-build_go linux amd64 "$DIST/work/linux-x64/Mappy"
-build_go linux arm64 "$DIST/work/linux-arm64/Mappy"
-chmod +x "$DIST/work/linux-x64/Mappy" "$DIST/work/linux-arm64/Mappy"
+build_go linux amd64 "$DIST/work/linux-x64/Orbis"
+build_go linux arm64 "$DIST/work/linux-arm64/Orbis"
+chmod +x "$DIST/work/linux-x64/Orbis" "$DIST/work/linux-arm64/Orbis"
 for folder in linux-x64 linux-arm64; do
-  cp "packaging/MAPPY STARTEN.sh" "$DIST/work/$folder/MAPPY STARTEN.sh"
-  chmod +x "$DIST/work/$folder/MAPPY STARTEN.sh"
+  cp "packaging/ORBIS STARTEN.sh" "$DIST/work/$folder/ORBIS STARTEN.sh"
+  chmod +x "$DIST/work/$folder/ORBIS STARTEN.sh"
   cp packaging/HIER-STARTEN-Linux.txt "$DIST/work/$folder/HIER STARTEN.txt"
   cp config.example.json "$DIST/work/$folder/config.example.json"
   cp DISTRIBUTION.md "$DIST/work/$folder/README.md"
   cp CREDITS.md "$DIST/work/$folder/CREDITS.md"
-  (cd "$DIST/work/$folder" && zip -qry "$DIST/releases/mappy-${VERSION}-${folder}.zip" .)
+  (cd "$DIST/work/$folder" && zip -qry "$DIST/releases/orbis-${VERSION}-${folder}.zip" .)
 done
 
-printf 'Built Mappy releases in %s\n' "$DIST/releases"
+printf 'Built Orbis releases in %s\n' "$DIST/releases"

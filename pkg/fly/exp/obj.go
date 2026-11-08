@@ -10,8 +10,8 @@ import (
 	"runtime/debug"
 	"sort"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 var transform = true
@@ -36,7 +36,7 @@ func NewLocalized(dir string, fnPfx string, latitude, longitude float64) (Export
 	exporter.localize = true
 	exporter.latRad = latitude * math.Pi / 180
 	exporter.lonRad = longitude * math.Pi / 180
-	exporter.objWriter.write("# Mappy local East-North-Up coordinates in meters\n")
+	exporter.objWriter.write("# Orbis local East-North-Up coordinates in meters\n")
 	return exporter, nil
 }
 

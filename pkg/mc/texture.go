@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 // texture turns material texture data into block colours. A nil texture means
@@ -69,7 +69,7 @@ func decodeHEIC(data []byte) image.Image {
 	if oth.HEICConverter() == "" {
 		return nil
 	}
-	dir, err := os.MkdirTemp("", "mappy-heic")
+	dir, err := os.MkdirTemp("", "orbis-heic")
 	if err != nil {
 		return nil
 	}

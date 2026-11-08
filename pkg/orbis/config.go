@@ -1,4 +1,4 @@
-package mappy
+package orbis
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Henkek221/mappy/pkg/mps/config"
+	"github.com/Henkek221/orbis/pkg/mps/config"
 )
 
 // Config is the runtime configuration: the Apple resource manifest URL and the
@@ -18,7 +18,7 @@ type Config = config.Config
 var (
 	// ErrNotConfigured means no usable tokenP1 was found in the config file,
 	// the environment or (on macOS) the local system.
-	ErrNotConfigured = errors.New("mappy is not configured: no tokenP1 in config.json, FLYOVER_TOKEN_P1 or the local system")
+	ErrNotConfigured = errors.New("orbis is not configured: no tokenP1 in config.json, FLYOVER_TOKEN_P1 or the local system")
 	// ErrManifestURL means the manifest URL is not an HTTPS apple.com address.
 	ErrManifestURL = errors.New("resourceManifestURL must be an https URL on apple.com")
 	// ErrToken means tokenP1 has an implausible length.

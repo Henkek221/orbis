@@ -9,21 +9,21 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 const configUsage = `Usage:
-  mappy config [status]        show where Mappy reads its configuration and test it
-  mappy config import PATH     use a config.json, or a kvasir output folder
-  mappy config scan PATH       read the client value from a GeoServices binary
-  mappy config write FILE      write the working config to FILE for another computer
-  mappy config path            print the data directory
+  orbis config [status]        show where Orbis reads its configuration and test it
+  orbis config import PATH     use a config.json, or a kvasir output folder
+  orbis config scan PATH       read the client value from a GeoServices binary
+  orbis config write FILE      write the working config to FILE for another computer
+  orbis config path            print the data directory
 
 Flags:
-  --home DIR    data directory (default: $MAPPY_HOME, ./config.json, user config dir)
+  --home DIR    data directory (default: $ORBIS_HOME, ./config.json, user config dir)
 
-On macOS no config is needed: Mappy finds the value in the system. On Windows
-and Linux, create one on any Mac with "mappy config write config.json" or with
+On macOS no config is needed: Orbis finds the value in the system. On Windows
+and Linux, create one on any Mac with "orbis config write config.json" or with
 kvasir (github.com/Henkek221/kvasir), then import it.
 `
 
@@ -65,14 +65,14 @@ func runConfig(args []string) int {
 			fmt.Fprint(os.Stderr, configUsage)
 			return 2
 		}
-		cfg, err := mappy.LoadConfig(p.Config)
+		cfg, err := orbis.LoadConfig(p.Config)
 		if err != nil {
 			return fail(err)
 		}
 		if !cfg.IsValid() {
-			return fail(mappy.ErrNotConfigured)
+			return fail(orbis.ErrNotConfigured)
 		}
-		if err := mappy.SaveConfig(positional[0], cfg); err != nil {
+		if err := orbis.SaveConfig(positional[0], cfg); err != nil {
 			return fail(err)
 		}
 		fmt.Fprintf(stdout, "wrote %s (client value %s). Keep it private: never commit or post it.\n", positional[0], mask(cfg.TokenP1))
@@ -95,7 +95,7 @@ func configStatus(p paths) int {
 		fmt.Fprintln(stdout, "file:     unreadable:", fileErr)
 	}
 
-	cfg, err := mappy.LoadConfig(p.Config)
+	cfg, err := orbis.LoadConfig(p.Config)
 	if err != nil {
 		return fail(err)
 	}
@@ -113,7 +113,7 @@ func configStatus(p paths) int {
 	}
 	fmt.Fprintf(stdout, "token:    %s from %s\n", mask(cfg.TokenP1), source)
 
-	if _, err := mappy.Connect(cfg, p.Cache); err != nil {
+	if _, err := orbis.Connect(cfg, p.Cache); err != nil {
 		fmt.Fprintln(stdout, "service:  failed:", err)
 		return 1
 	}
@@ -123,15 +123,15 @@ func configStatus(p paths) int {
 
 // configFromPath accepts a config.json, a kvasir output folder, or (scan) a
 // GeoServices binary or dyld shared cache.
-func configFromPath(path string, scan bool) (mappy.Config, string, error) {
+func configFromPath(path string, scan bool) (orbis.Config, string, error) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return mappy.Config{}, "", err
+		return orbis.Config{}, "", err
 	}
 	if info.IsDir() {
 		found, err := findInKvasirOutput(path)
 		if err != nil {
-			return mappy.Config{}, "", err
+			return orbis.Config{}, "", err
 		}
 		path = found
 		scan = filepath.Base(found) != "config.json"
@@ -140,21 +140,21 @@ func configFromPath(path string, scan bool) (mappy.Config, string, error) {
 	if !scan {
 		cfg, err := readConfigFile(path)
 		if err != nil {
-			return mappy.Config{}, "", fmt.Errorf("%s is not a Mappy config.json: %w", path, err)
+			return orbis.Config{}, "", fmt.Errorf("%s is not a Orbis config.json: %w", path, err)
 		}
 		return cfg, path, nil
 	}
 
 	f, err := os.Open(path)
 	if err != nil {
-		return mappy.Config{}, "", err
+		return orbis.Config{}, "", err
 	}
 	defer f.Close()
-	token := mappy.ScanToken(f)
+	token := orbis.ScanToken(f)
 	if token == "" {
-		return mappy.Config{}, "", fmt.Errorf("no Apple client value found in %s; use the GeoServices binary", path)
+		return orbis.Config{}, "", fmt.Errorf("no Apple client value found in %s; use the GeoServices binary", path)
 	}
-	return mappy.ConfigFromToken(token), path, nil
+	return orbis.ConfigFromToken(token), path, nil
 }
 
 // findInKvasirOutput looks for kvasir's mead/config.json, then for the
@@ -185,27 +185,27 @@ func findInKvasirOutput(root string) (string, error) {
 	return "", fmt.Errorf("no config.json or GeoServices in %s; run kvasir with -packs mead first", root)
 }
 
-func installConfig(p paths, cfg mappy.Config, source string) int {
-	if err := mappy.ValidateConfig(cfg); err != nil {
+func installConfig(p paths, cfg orbis.Config, source string) int {
+	if err := orbis.ValidateConfig(cfg); err != nil {
 		return fail(err)
 	}
-	if _, err := mappy.Connect(cfg, p.Cache); err != nil {
+	if _, err := orbis.Connect(cfg, p.Cache); err != nil {
 		return fail(fmt.Errorf("the service rejected this configuration: %w", err))
 	}
-	if err := mappy.SaveConfig(p.Config, cfg); err != nil {
+	if err := orbis.SaveConfig(p.Config, cfg); err != nil {
 		return fail(err)
 	}
 	fmt.Fprintf(stdout, "configured from %s\nsaved %s (client value %s)\n", source, p.Config, mask(cfg.TokenP1))
 	return 0
 }
 
-func readConfigFile(path string) (mappy.Config, error) {
+func readConfigFile(path string) (orbis.Config, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return mappy.Config{}, err
+		return orbis.Config{}, err
 	}
 	defer f.Close()
-	return mappy.ParseConfig(f)
+	return orbis.ParseConfig(f)
 }
 
 func mask(value string) string {

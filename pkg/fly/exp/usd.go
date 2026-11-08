@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
 )
 
 // USDExport writes a text USD stage (.usda) with UsdPreviewSurface materials
@@ -47,17 +47,17 @@ func NewUSD(dir, name string, latitude, longitude float64) (*USDExport, error) {
 	}
 	fmt.Fprintf(e.out, `#usda 1.0
 (
-    defaultPrim = "mappy"
+    defaultPrim = "orbis"
     metersPerUnit = 1
     upAxis = "Y"
     customLayerData = {
-        string generator = "Mappy"
+        string generator = "Orbis"
         double latitude = %s
         double longitude = %s
     }
 )
 
-def Xform "mappy" (
+def Xform "orbis" (
     kind = "component"
 )
 {
@@ -122,7 +122,7 @@ func (e *USDExport) Next(tile c3m.C3M, subPfx string) (err error) {
 }
 
 func (e *USDExport) writeMaterial(name, texture string) {
-	path := "/mappy/" + name
+	path := "/orbis/" + name
 	fmt.Fprintf(e.out, `    def Material "%s"
     {
         token outputs:surface.connect = <%s/Surface.outputs:surface>
@@ -253,7 +253,7 @@ func (e *USDExport) writeMesh(name string, mesh c3m.Mesh, group c3m.Group, posit
 	}
 	w.WriteString("] (\n            interpolation = \"vertex\"\n        )\n")
 	if material != "" {
-		fmt.Fprintf(w, "        rel material:binding = </mappy/%s>\n", material)
+		fmt.Fprintf(w, "        rel material:binding = </orbis/%s>\n", material)
 	}
 	w.WriteString("    }\n\n")
 }

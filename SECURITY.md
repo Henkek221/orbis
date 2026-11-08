@@ -12,7 +12,7 @@ Erstelle in diesem Fall eine saubere neue Historie und ersetze betroffene Werte.
 
 ## Lokaler Server
 
-Mappy lauscht standardmäßig auf `localhost:8787`. Damit ist die Oberfläche nur
+Orbis lauscht standardmäßig auf `localhost:8787`. Damit ist die Oberfläche nur
 auf dem eigenen Computer erreichbar. Setze `FLYOVER_UI_ADDR` nur dann auf eine
 andere Adresse, wenn du die Folgen für dein Netzwerk verstehst.
 

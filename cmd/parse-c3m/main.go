@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 var l = log.New(os.Stderr, "", 0)

@@ -1,12 +1,12 @@
-MAPPY STARTEN
+ORBIS STARTEN
 =============
 
-1. Rechtsklick auf Mappy.app.
+1. Rechtsklick auf Orbis.app.
 2. Öffnen anklicken.
 3. Die Rückfrage nochmals mit Öffnen bestätigen.
 
-Danach öffnet sich Mappy automatisch im Browser. Eine config.json ist auf
+Danach öffnet sich Orbis automatisch im Browser. Eine config.json ist auf
 macOS nicht nötig.
 
-Das Mappy-Fenster während der Nutzung geöffnet lassen. Beenden kannst du Mappy
+Das Orbis-Fenster während der Nutzung geöffnet lassen. Beenden kannst du Orbis
 später ganz normal mit Cmd+Q.

@@ -1,6 +1,6 @@
 package c3mm
 
-import "github.com/Henkek221/mappy/pkg/bin"
+import "github.com/Henkek221/orbis/pkg/bin"
 
 // GetPartNumber finds the part number for octant data access
 func (fi FileIndex) GetPartNumber(octantOffset int) int {

@@ -9,8 +9,8 @@ import (
 	"runtime/debug"
 	"sort"
 
-	"github.com/Henkek221/mappy/pkg/bin"
-	"github.com/Henkek221/mappy/pkg/fly/c3mm/codec"
+	"github.com/Henkek221/orbis/pkg/bin"
+	"github.com/Henkek221/orbis/pkg/fly/c3mm/codec"
 )
 
 var l = log.New(os.Stderr, "", 0)

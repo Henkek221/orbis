@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Henkek221/mappy/pkg/mps"
-	"github.com/Henkek221/mappy/pkg/web"
+	"github.com/Henkek221/orbis/pkg/mps"
+	"github.com/Henkek221/orbis/pkg/web"
 )
 
 type AltitudeManifest struct {

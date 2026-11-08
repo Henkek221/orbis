@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 func runCoverage(args []string) int {
@@ -17,7 +17,7 @@ func runCoverage(args []string) int {
 	area.register(fs)
 	home := fs.String("home", "", "data directory (config.json, cache)")
 	zoom := fs.Int("zoom", 18, "tile level 13-20")
-	heights := fs.Int("heights", mappy.DefaultHeightLayers, "octree height layers to check")
+	heights := fs.Int("heights", orbis.DefaultHeightLayers, "octree height layers to check")
 	maxTiles := fs.Int("max-tiles", 1024, "refuse larger scans")
 	jsonOut := fs.Bool("json", false, "print the result as JSON")
 	if _, err := parseArgs(fs, args); err != nil {
@@ -40,7 +40,7 @@ func runCoverage(args []string) int {
 	}
 	lat, lon := bounds.Center()
 	region, regionErr := client.Region(lat, lon)
-	coverage, err := client.Coverage(ctx, bounds, mappy.CoverageOptions{Zoom: *zoom, HeightLayers: *heights, MaxTiles: *maxTiles})
+	coverage, err := client.Coverage(ctx, bounds, orbis.CoverageOptions{Zoom: *zoom, HeightLayers: *heights, MaxTiles: *maxTiles})
 	if err != nil {
 		return fail(err)
 	}
@@ -83,7 +83,7 @@ func runCoverage(args []string) int {
 	}
 	fmt.Fprintln(stdout, "\n  █ 3D mesh   · none   ? index unreadable (often a newer region format)")
 	if coverage.Unknown > 0 && coverage.Available == 0 {
-		fmt.Fprintln(os.Stderr, "\nmappy: this region's index could not be read; it is probably served in Apple's newer format")
+		fmt.Fprintln(os.Stderr, "\norbis: this region's index could not be read; it is probably served in Apple's newer format")
 	}
 	return 0
 }
@@ -98,11 +98,11 @@ func runSearch(args []string) int {
 	}
 	query := strings.TrimSpace(strings.Join(positional, " "))
 	if len([]rune(query)) < 2 {
-		return fail(fmt.Errorf("usage: mappy search <place>"))
+		return fail(fmt.Errorf("usage: orbis search <place>"))
 	}
 	ctx, stop := signalContext()
 	defer stop()
-	places, err := mappy.Search(ctx, query, *limit)
+	places, err := orbis.Search(ctx, query, *limit)
 	if err != nil {
 		return fail(err)
 	}

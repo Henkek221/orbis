@@ -1,21 +1,21 @@
-# Mappy
+# Orbis
 
 **Export real places as textured 3D models for any engine or app.**
 
-Mappy pulls Apple's photogrammetry mesh for an area and writes it as a single
+Orbis pulls Apple's photogrammetry mesh for an area and writes it as a single
 `GLB` (Unity, Unreal, Godot, Blender, three.js, Babylon), a `USDZ` (Xcode,
 RealityKit, Reality Composer, Quick Look, visionOS), an `OBJ` package, or a
 Minecraft world. It runs locally as a command-line tool, a Go library, and a
 browser UI. No account, no upload.
 
 ```bash
-mappy export --place "Space Needle, Seattle" --size 250
+orbis export --place "Space Needle, Seattle" --size 250
 ```
 
-![The Space Needle exported with Mappy and rendered in SceneKit](docs/images/space-needle.png)
+![The Space Needle exported with Orbis and rendered in SceneKit](docs/images/space-needle.png)
 
 > [!IMPORTANT]
-> Mappy is an experimental research project. It uses Apple's undocumented map
+> Orbis is an experimental research project. It uses Apple's undocumented map
 > service. Coverage is incomplete, and the exported data is Apple's and subject
 > to Apple's terms: see [Licensing and data terms](#licensing-and-data-terms).
 
@@ -34,15 +34,15 @@ mappy export --place "Space Needle, Seattle" --size 250
 ## Quick start
 
 ```bash
-go install github.com/Henkek221/mappy/cmd/mappy@latest   # or grab a release ZIP
+go install github.com/Henkek221/orbis/cmd/orbis@latest   # or grab a release ZIP
 
-mappy search "Arc de Triomphe"                          # find coordinates
-mappy coverage --place "Arc de Triomphe"                 # is there 3D data?
-mappy export --place "Arc de Triomphe" --size 200        # → arc-de-triomphe/arc-de-triomphe.glb
-mappy export --center 47.6205,-122.3493 --size 250 --format glb,usdz,obj
+orbis search "Arc de Triomphe"                          # find coordinates
+orbis coverage --place "Arc de Triomphe"                 # is there 3D data?
+orbis export --place "Arc de Triomphe" --size 200        # → arc-de-triomphe/arc-de-triomphe.glb
+orbis export --center 47.6205,-122.3493 --size 250 --format glb,usdz,obj
 ```
 
-On macOS Mappy configures itself. On Windows and Linux, import a `config.json`
+On macOS Orbis configures itself. On Windows and Linux, import a `config.json`
 once (see [Configuration](#configuration)).
 
 ## Output formats
@@ -57,7 +57,7 @@ once (see [Configuration](#configuration)).
 Every model uses a local frame in metres whose origin is the centre of the
 export at ground level, so it imports at real scale and in place. For GLB and
 USD: **+X east, +Y up, +Z south**. The GLB carries the geographic anchor in
-`asset.extras.mappy` (`centre` lat/lon, `ecefOrigin`, bounds, triangle count),
+`asset.extras.orbis` (`centre` lat/lon, `ecefOrigin`, bounds, triangle count),
 so you can georeference several exports against each other.
 
 Measured quality of the classic data at zoom 20: about 2–3 triangles and
@@ -67,19 +67,19 @@ tile. Zoom 21+ returns nothing; zoom 20 is the ceiling.
 ## Command line
 
 ```
-mappy export     export an area as GLB, USDZ, OBJ or a Minecraft world
-mappy coverage   show which tiles of an area have 3D data
-mappy search     find a place and print its coordinates
-mappy regions    list the 3D regions the service announces
-mappy config     show, import or scan the runtime configuration
-mappy ui         open the browser interface
-mappy version
+orbis export     export an area as GLB, USDZ, OBJ or a Minecraft world
+orbis coverage   show which tiles of an area have 3D data
+orbis search     find a place and print its coordinates
+orbis regions    list the 3D regions the service announces
+orbis config     show, import or scan the runtime configuration
+orbis ui         open the browser interface
+orbis version
 ```
 
 An area is one of `--bbox W,S,E,N`, `--center LAT,LON` or `--place "Name"`,
 the last two sized with `--size 250` or `--size 300x200` (metres).
 
-`mappy export` flags:
+`orbis export` flags:
 
 | Flag | Default | |
 | --- | --- | --- |
@@ -90,7 +90,7 @@ the last two sized with `--size 250` or `--size 300x200` (metres).
 | `--heights` | `24` | octree height layers; raise to 32+ for skyscrapers |
 | `--parallel` | `16` | concurrent downloads |
 | `--block-size` | `1` | Minecraft metres per block (0.25–4) |
-| `--max-requests` | `200000` | safety limit, also `MAPPY_MAX_REQUESTS` |
+| `--max-requests` | `200000` | safety limit, also `ORBIS_MAX_REQUESTS` |
 | `--json` | | print the result as JSON on stdout (for scripts) |
 | `--quiet` | | no progress |
 
@@ -100,46 +100,46 @@ found.
 
 ```bash
 # Script a batch, machine-readable:
-mappy export --place "Duomo di Milano" --size 150 --json | jq -r .glb
+orbis export --place "Duomo di Milano" --size 150 --json | jq -r .glb
 ```
 
 ## Go library
 
-Everything the CLI does is in [`pkg/mappy`](pkg/mappy):
+Everything the CLI does is in [`pkg/orbis`](pkg/orbis):
 
 ```go
-client, err := mappy.Open(mappy.Options{ConfigPath: "config.json", CacheDir: "cache"})
+client, err := orbis.Open(orbis.Options{ConfigPath: "config.json", CacheDir: "cache"})
 if err != nil { log.Fatal(err) }
 
-result, err := client.Export(ctx, mappy.Request{
+result, err := client.Export(ctx, orbis.Request{
 	Name:   "space-needle",
-	Bounds: mappy.BoundsAround(47.6205, -122.3493, 250, 250),
+	Bounds: orbis.BoundsAround(47.6205, -122.3493, 250, 250),
 	GLB:    true,
 	USD:    true,
 	OutputRoot: "exports",
-}, mappy.Progress{Log: func(s string) { log.Println(s) }})
+}, orbis.Progress{Log: func(s string) { log.Println(s) }})
 ```
 
 Also available: `client.Coverage`, `client.Region`, `client.Regions`,
-`mappy.Search`, `mappy.Reverse`, config helpers. To add your own output, pass a
-`mappy.TileWriter` in `Request.Writers`: it receives every decoded tile (mesh,
+`orbis.Search`, `orbis.Reverse`, config helpers. To add your own output, pass a
+`orbis.TileWriter` in `Request.Writers`: it receives every decoded tile (mesh,
 materials, ECEF transform) in order.
 
 ## Browser UI
 
 ```bash
-mappy ui
+orbis ui
 ```
 
 Search a place, switch on the coverage overlay, draw a rectangle, export, and
 explore the result in the built-in viewer (orbit, walk, or drive). Existing OBJ
 models open by drag and drop.
 
-![Select an area and export a 3D model with Mappy](docs/images/mappy-export.gif)
-![Explore an exported 3D model in the Mappy viewer](docs/images/mappy-viewer.gif)
+![Select an area and export a 3D model with Orbis](docs/images/orbis-export.gif)
+![Explore an exported 3D model in the Orbis viewer](docs/images/orbis-viewer.gif)
 
-The release ZIPs start the UI by double-click (`Mappy.app`, `MAPPY STARTEN.cmd`,
-`MAPPY STARTEN.sh`) and include a German quick-start file.
+The release ZIPs start the UI by double-click (`Orbis.app`, `ORBIS STARTEN.cmd`,
+`ORBIS STARTEN.sh`) and include a German quick-start file.
 
 ## Coverage: classic vs. Apple's new 3D format
 
@@ -148,35 +148,35 @@ As of November 2026 Apple serves 3D cities in two generations:
 | | Classic (C3M) | New (R3D v2, style 98) |
 | --- | --- | --- |
 | Regions | 56 named regions, e.g. Paris, Milan, Madrid, Bordeaux, Seattle, Vancouver, Cincinnati, US national parks | ~1,380 `Reg_z9_*` regions, e.g. Berlin, Hamburg, New York, London |
-| Mappy | **fully supported** | **not yet**: container, index and textures are decoded ([`pkg/fly/r3d`](pkg/fly/r3d)); the compressed geometry codec is work in progress |
+| Orbis | **fully supported** | **not yet**: container, index and textures are decoded ([`pkg/fly/r3d`](pkg/fly/r3d)); the compressed geometry codec is work in progress |
 | Extras | — | Apple's own triangle splats (soft, RGBA, view-dependent), height raster (style 99) |
 
-`mappy coverage` shows `?` for tiles of new-format regions. Within classic
+`orbis coverage` shows `?` for tiles of new-format regions. Within classic
 regions, the R3D tiles carry byte-identical textures, so the new format adds
 coverage and splats rather than resolution.
 
 ## Configuration
 
-Mappy needs a static client value Apple compiles into its `GeoServices`
+Orbis needs a static client value Apple compiles into its `GeoServices`
 library. It is not a personal key, but treat it as private.
 
-- **macOS:** nothing to do; Mappy reads it from the system.
+- **macOS:** nothing to do; Orbis reads it from the system.
 - **Windows / Linux:** create a `config.json` once on any Mac and import it:
 
   ```bash
-  mappy config write config.json        # on the Mac
-  mappy config import config.json       # on Windows/Linux
+  orbis config write config.json        # on the Mac
+  orbis config import config.json       # on Windows/Linux
   ```
 
   Or use [kvasir](https://github.com/Henkek221/kvasir), which drains an
-  installed iOS simulator runtime: `mappy config import ~/mead` finds kvasir's
+  installed iOS simulator runtime: `orbis config import ~/mead` finds kvasir's
   `config.json` or the extracted `GeoServices` binary by itself.
-  `mappy config scan <GeoServices>` reads the value from the binary directly.
-- `mappy config` shows where the configuration comes from and tests it.
+  `orbis config scan <GeoServices>` reads the value from the binary directly.
+- `orbis config` shows where the configuration comes from and tests it.
 
-Data lives in `--home`, `$MAPPY_HOME`, the current directory when it holds a
+Data lives in `--home`, `$ORBIS_HOME`, the current directory when it holds a
 `config.json`, or the user config directory (`~/Library/Application
-Support/Mappy`, `%AppData%\Mappy`, `~/.config/Mappy`).
+Support/Orbis`, `%AppData%\Orbis`, `~/.config/Orbis`).
 `FLYOVER_TOKEN_P1` and `FLYOVER_RESOURCE_MANIFEST_URL` override the file.
 
 Never commit, upload, or include `config.json` in an issue.
@@ -195,18 +195,18 @@ above ~190 m is cut off.
 Go 1.24+. Dependencies are vendored.
 
 ```bash
-go build -mod=vendor -o mappy ./cmd/mappy
-./scripts/build_mappy_releases.sh dev      # release ZIPs in dist/mappy/releases/
+go build -mod=vendor -o orbis ./cmd/orbis
+./scripts/build_orbis_releases.sh dev      # release ZIPs in dist/orbis/releases/
 ```
 
-Newer Apple textures are HEIC. Go cannot decode HEIC without cgo, so Mappy
+Newer Apple textures are HEIC. Go cannot decode HEIC without cgo, so Orbis
 converts with `sips` (macOS), ImageMagick, `heif-convert` or `ffmpeg`, whichever
 is installed. Without one, GLB/USD materials fall back to grey and OBJ keeps
 `.heic` files.
 
 ## Credits
 
-Mappy builds on substantial prior work:
+Orbis builds on substantial prior work:
 
 - [retroplasma/flyover-reverse-engineering](https://github.com/retroplasma/flyover-reverse-engineering)
   for the original Flyover format, tile, and decoder research
@@ -222,17 +222,17 @@ See [CREDITS.md](CREDITS.md) for details.
 
 ## Licensing and data terms
 
-Mappy is not developed, endorsed, or supported by Apple. Apple, Apple Maps, and
+Orbis is not developed, endorsed, or supported by Apple. Apple, Apple Maps, and
 Flyover are trademarks or services of Apple Inc.
 
 - **The data is Apple's.** Apple's Maps terms prohibit copying, extracting,
-  scraping or bulk downloading the service's content. Use Mappy for research,
+  scraping or bulk downloading the service's content. Use Orbis for research,
   prototyping and interoperability on your own machine. Do not redistribute
   exported geometry or imagery, do not ship it in a product, and do not use it
   to train models.
-- **The code is not OSI open source yet.** The upstream repositories Mappy
-  builds on publish no license. Code written for Mappy (`pkg/mappy`,
+- **The code is not OSI open source yet.** The upstream repositories Orbis
+  builds on publish no license. Code written for Orbis (`pkg/orbis`,
   `pkg/fly/exp/glb.go`, `pkg/fly/exp/usd.go`, `pkg/fly/r3d`, `pkg/mc`,
-  `internal/server`, `cmd/mappy`) is the Mappy authors' own, but the repository
+  `internal/server`, `cmd/orbis`) is the Orbis authors' own, but the repository
   as a whole must not be presented as open source or redistributed commercially
   until the inherited code's license is resolved.

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
 )
 
 func TestLocalizedExportUsesMetersUpAxisAndNormals(t *testing.T) {
@@ -44,7 +44,7 @@ func TestLocalizedExportUsesMetersUpAxisAndNormals(t *testing.T) {
 	}
 	obj := string(data)
 	for _, want := range []string{
-		"# Mappy local East-North-Up coordinates in meters",
+		"# Orbis local East-North-Up coordinates in meters",
 		"v 0 0 0",
 		"v 0 0 1",
 		"vn ",

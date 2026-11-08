@@ -5,9 +5,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/Henkek221/mappy/pkg/mps/auth"
-	"github.com/Henkek221/mappy/pkg/mps/config"
-	"github.com/Henkek221/mappy/pkg/web"
+	"github.com/Henkek221/orbis/pkg/mps/auth"
+	"github.com/Henkek221/orbis/pkg/mps/config"
+	"github.com/Henkek221/orbis/pkg/web"
 	"google.golang.org/protobuf/proto"
 )
 

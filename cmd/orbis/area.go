@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 // areaFlags is the shared way to describe an area on the command line.
@@ -27,7 +27,7 @@ func (a *areaFlags) register(fs *flag.FlagSet) {
 }
 
 // resolve returns the bounds and, for --place, the place's short name.
-func (a *areaFlags) resolve(ctx context.Context) (mappy.Bounds, string, error) {
+func (a *areaFlags) resolve(ctx context.Context) (orbis.Bounds, string, error) {
 	set := 0
 	for _, v := range []string{a.bbox, a.center, a.place} {
 		if v != "" {
@@ -35,40 +35,40 @@ func (a *areaFlags) resolve(ctx context.Context) (mappy.Bounds, string, error) {
 		}
 	}
 	if set != 1 {
-		return mappy.Bounds{}, "", errors.New("give exactly one of --bbox, --center or --place")
+		return orbis.Bounds{}, "", errors.New("give exactly one of --bbox, --center or --place")
 	}
 
 	if a.bbox != "" {
 		v, err := floats(a.bbox, 4)
 		if err != nil {
-			return mappy.Bounds{}, "", fmt.Errorf("--bbox: %w", err)
+			return orbis.Bounds{}, "", fmt.Errorf("--bbox: %w", err)
 		}
-		b := mappy.Bounds{West: v[0], South: v[1], East: v[2], North: v[3]}
+		b := orbis.Bounds{West: v[0], South: v[1], East: v[2], North: v[3]}
 		return b, "", b.Validate()
 	}
 
 	width, height, err := parseSize(a.size)
 	if err != nil {
-		return mappy.Bounds{}, "", err
+		return orbis.Bounds{}, "", err
 	}
 	if a.center != "" {
 		v, err := floats(a.center, 2)
 		if err != nil {
-			return mappy.Bounds{}, "", fmt.Errorf("--center: %w", err)
+			return orbis.Bounds{}, "", fmt.Errorf("--center: %w", err)
 		}
-		b := mappy.BoundsAround(v[0], v[1], width, height)
+		b := orbis.BoundsAround(v[0], v[1], width, height)
 		return b, "", b.Validate()
 	}
 
-	places, err := mappy.Search(ctx, a.place, 1)
+	places, err := orbis.Search(ctx, a.place, 1)
 	if err != nil {
-		return mappy.Bounds{}, "", fmt.Errorf("place search: %w", err)
+		return orbis.Bounds{}, "", fmt.Errorf("place search: %w", err)
 	}
 	if len(places) == 0 {
-		return mappy.Bounds{}, "", fmt.Errorf("no place found for %q", a.place)
+		return orbis.Bounds{}, "", fmt.Errorf("no place found for %q", a.place)
 	}
 	p := places[0]
-	b := mappy.BoundsAround(p.Lat, p.Lon, width, height)
+	b := orbis.BoundsAround(p.Lat, p.Lon, width, height)
 	return b, p.Name, b.Validate()
 }
 

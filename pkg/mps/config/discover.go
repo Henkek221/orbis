@@ -14,7 +14,7 @@ var (
 )
 
 func discoveredTokenP1() string {
-	if os.Getenv("MAPPY_DISABLE_AUTO_CONFIG") != "" {
+	if os.Getenv("ORBIS_DISABLE_AUTO_CONFIG") != "" {
 		return ""
 	}
 	discoveryOnce.Do(func() {

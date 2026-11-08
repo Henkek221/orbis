@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#fff6f4" />
-    <title>Mappy — Export a place</title>
+    <title>Orbis — Export a place</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="/styles.css" />
@@ -15,7 +15,7 @@
         <div id="map" aria-label="Map"></div>
 
         <div class="map-topbar">
-          <a class="wordmark" href="#" aria-label="Mappy home">Mappy</a>
+          <a class="wordmark" href="#" aria-label="Orbis home">Orbis</a>
 
           <div class="search-wrap">
             <form id="searchForm" class="search" role="search">
@@ -54,14 +54,14 @@
         <header class="panel-header">
           <p class="eyebrow">3D map export</p>
           <h1>Take a place<br />with you.</h1>
-          <p class="intro">Find a location, frame the part you need, and take it home as a 3D model or a Minecraft world.</p>
+          <p class="intro">Frame any place and take it with you as a textured 3D model: GLB for every engine, USDZ for Apple platforms, OBJ for any tool.</p>
         </header>
 
         <div class="perk-grid" aria-label="What an export contains">
           <ul class="perk-chips">
-            <li class="chip chip-green">OBJ</li>
-            <li class="chip chip-pink">MTL</li>
-            <li class="chip chip-cream">JPG</li>
+            <li class="chip chip-green">GLB</li>
+            <li class="chip chip-pink">USDZ</li>
+            <li class="chip chip-cream">OBJ</li>
             <li class="chip chip-orange">Minecraft</li>
           </ul>
           <div class="perk perk-lime">
@@ -69,8 +69,8 @@
             <span>Houses straight from the scan</span>
           </div>
           <div class="perk perk-green">
-            <strong>Block world</strong>
-            <span>Every block from a real photo pixel</span>
+            <strong>Any engine</strong>
+            <span>Unity, Unreal, Godot, Blender, Xcode</span>
           </div>
           <div class="perk perk-pink">
             <strong>Stays local</strong>
@@ -129,17 +129,35 @@
             <span class="step-number">3</span>
             <div>
               <h2 id="formatHeading">Pick the formats</h2>
-              <p>Both come from the same scan, so one run can write both.</p>
+              <p>Every format comes from the same scan, so one run writes them all.</p>
             </div>
           </div>
 
           <div class="format-grid">
+            <label class="format-card is-on" for="glbInput">
+              <input id="glbInput" type="checkbox" checked />
+              <span class="format-icon" aria-hidden="true"><i data-lucide="gamepad-2"></i></span>
+              <span class="format-copy">
+                <strong>Game engines</strong>
+                <small>One GLB with embedded textures for Unity, Unreal, Godot, Blender or three.js.</small>
+              </span>
+            </label>
+
+            <label class="format-card" for="usdInput">
+              <input id="usdInput" type="checkbox" />
+              <span class="format-icon" aria-hidden="true"><i data-lucide="layers"></i></span>
+              <span class="format-copy">
+                <strong>Apple platforms</strong>
+                <small>USDZ for Xcode, RealityKit, Reality Composer, Quick Look and visionOS.</small>
+              </span>
+            </label>
+
             <label class="format-card is-on" for="objInput">
               <input id="objInput" type="checkbox" checked />
               <span class="format-icon" aria-hidden="true"><i data-lucide="box"></i></span>
               <span class="format-copy">
                 <strong>3D model</strong>
-                <small>OBJ, MTL and textures for Blender, Unreal or the built-in viewer.</small>
+                <small>OBJ, MTL and textures for any 3D tool and the built-in viewer.</small>
               </span>
             </label>
 
@@ -245,12 +263,12 @@
 
     <div id="setupGate" class="setup-gate" role="dialog" aria-modal="true" aria-labelledby="setupTitle" aria-busy="true">
       <section class="setup-card">
-        <div class="setup-brand" aria-hidden="true">Mappy</div>
+        <div class="setup-brand" aria-hidden="true">Orbis</div>
 
         <div id="setupChecking" class="setup-checking">
           <span class="setup-pulse" aria-hidden="true"></span>
           <div>
-            <h2 id="setupTitle">Mappy wird vorbereitet</h2>
+            <h2 id="setupTitle">Orbis wird vorbereitet</h2>
             <p>Lokale 3D-Kartenverbindung wird geprüft.</p>
           </div>
         </div>
@@ -268,10 +286,10 @@
             </span>
           </button>
           <input id="setupFileInput" hidden type="file" accept=".json,application/json" />
-          <p id="setupStatus" class="setup-status" role="status">Mappy speichert sie nur lokal neben dem Programm.</p>
+          <p id="setupStatus" class="setup-status" role="status">Orbis speichert sie nur lokal neben dem Programm.</p>
 
           <div class="setup-alt">
-            <p>Keine config.json und keinen Mac? Mappy liest den Wert auch direkt aus einer Apple-<code>GeoServices</code>-Datei.</p>
+            <p>Keine config.json und keinen Mac? Orbis liest den Wert auch direkt aus einer Apple-<code>GeoServices</code>-Datei.</p>
             <form id="setupScanForm" class="setup-scan">
               <label class="sr-only" for="setupScanPath">Pfad zur GeoServices-Datei</label>
               <input id="setupScanPath" type="text" spellcheck="false" placeholder="C:\Pfad\zu\GeoServices" />

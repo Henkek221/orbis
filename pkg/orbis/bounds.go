@@ -1,13 +1,13 @@
-// Package mappy is the toolkit behind the Mappy CLI and browser UI: open a
+// Package orbis is the toolkit behind the Orbis CLI and browser UI: open a
 // client against Apple's 3D map service, check coverage for an area and export
 // it as OBJ and/or a Minecraft world.
-package mappy
+package orbis
 
 import (
 	"errors"
 	"math"
 
-	"github.com/Henkek221/mappy/pkg/mth"
+	"github.com/Henkek221/orbis/pkg/mth"
 )
 
 const metresPerDegreeLat = 111_320.0
@@ -21,7 +21,7 @@ type Bounds struct {
 }
 
 // BoundsAround returns a rectangle of the given size in metres centred on a
-// point. It is accurate enough for the few hundred metres Mappy exports.
+// point. It is accurate enough for the few hundred metres Orbis exports.
 func BoundsAround(lat, lon, widthMetres, heightMetres float64) Bounds {
 	dLat := heightMetres / 2 / metresPerDegreeLat
 	dLon := widthMetres / 2 / (metresPerDegreeLat * math.Cos(lat*math.Pi/180))

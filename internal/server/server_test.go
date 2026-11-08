@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 func TestServeJobFileOnlyAfterCompletedExport(t *testing.T) {
@@ -98,8 +98,8 @@ func TestRestoreCompletedExportsMakesViewerAvailableAfterRestart(t *testing.T) {
 }
 
 func TestValidateSetupConfig(t *testing.T) {
-	valid := mappy.Config{
-		ResourceManifestURL: mappy.DefaultResourceManifestURL(),
+	valid := orbis.Config{
+		ResourceManifestURL: orbis.DefaultResourceManifestURL(),
 		TokenP1:             "LocalTestToken123",
 	}
 	if err := validateSetupConfig(valid); err != nil {
@@ -121,8 +121,8 @@ func TestValidateSetupConfig(t *testing.T) {
 
 func TestWriteSetupConfigUsesPrivateFilePermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
-	cfg := mappy.Config{
-		ResourceManifestURL: mappy.DefaultResourceManifestURL(),
+	cfg := orbis.Config{
+		ResourceManifestURL: orbis.DefaultResourceManifestURL(),
 		TokenP1:             "LocalTestToken123",
 	}
 	if err := writeSetupConfig(path, cfg); err != nil {
@@ -135,7 +135,7 @@ func TestWriteSetupConfigUsesPrivateFilePermissions(t *testing.T) {
 	if got := info.Mode().Perm(); got != 0o600 {
 		t.Fatalf("config permissions = %o, want 600", got)
 	}
-	loaded, err := mappy.LoadConfig(path)
+	loaded, err := orbis.LoadConfig(path)
 	if err != nil {
 		t.Fatal(err)
 	}

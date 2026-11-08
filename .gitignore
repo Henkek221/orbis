@@ -1,7 +1,7 @@
 # Private Laufzeitkonfiguration
 config.json
 
-# Von Mappy erzeugte Daten
+# Von Orbis erzeugte Daten
 cache/
 downloaded_files/
 dist/

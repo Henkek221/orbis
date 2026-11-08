@@ -1,4 +1,4 @@
-package mappy
+package orbis
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/fly/exp"
-	"github.com/Henkek221/mappy/pkg/mc"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/fly/exp"
+	"github.com/Henkek221/orbis/pkg/mc"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 // Defaults match the browser UI.
@@ -111,7 +111,7 @@ func (r Request) Validate() error {
 		return errors.New("parallel downloads must be between 1 and 64")
 	}
 	if n := r.RequestCount(); r.MaxRequests > 0 && n > r.MaxRequests {
-		return fmt.Errorf("selection would scan %d tile-height requests; current limit is %d (set MAPPY_MAX_REQUESTS to raise it)", n, r.MaxRequests)
+		return fmt.Errorf("selection would scan %d tile-height requests; current limit is %d (set ORBIS_MAX_REQUESTS to raise it)", n, r.MaxRequests)
 	}
 	return nil
 }
@@ -121,10 +121,10 @@ func (r Request) RequestCount() int {
 	return r.Bounds.Tiles(r.Zoom).Count() * r.HeightLayers
 }
 
-// MaxRequestsFromEnv reads MAPPY_MAX_REQUESTS and falls back to
+// MaxRequestsFromEnv reads ORBIS_MAX_REQUESTS and falls back to
 // DefaultMaxRequests.
 func MaxRequestsFromEnv() int {
-	raw := strings.TrimSpace(os.Getenv("MAPPY_MAX_REQUESTS"))
+	raw := strings.TrimSpace(os.Getenv("ORBIS_MAX_REQUESTS"))
 	if raw == "" {
 		return DefaultMaxRequests
 	}

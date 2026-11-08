@@ -1,5 +1,5 @@
-// Package server is Mappy's local browser UI: a small HTTP API around
-// pkg/mappy plus the embedded static frontend.
+// Package server is Orbis's local browser UI: a small HTTP API around
+// pkg/orbis plus the embedded static frontend.
 package server
 
 import (
@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 //go:embed static/*
@@ -34,14 +34,14 @@ const (
 
 var exportRoot = filepath.Join("downloaded_files", "obj")
 
-var maxRequests = mappy.MaxRequestsFromEnv()
+var maxRequests = orbis.MaxRequestsFromEnv()
 
 var (
 	jobsMu sync.Mutex
 	jobs   = map[string]*job{}
 
 	coverageMu     sync.Mutex
-	coverageClient *mappy.Client
+	coverageClient *orbis.Client
 )
 
 // Options configures the UI server.
@@ -49,7 +49,7 @@ type Options struct {
 	// Addr is the listen address, ":8787" by default.
 	Addr string
 	// Home is the directory holding config.json, cache and exports. Empty
-	// keeps the app-bundle behaviour: MAPPY_HOME, the working directory if it
+	// keeps the app-bundle behaviour: ORBIS_HOME, the working directory if it
 	// has a config.json, else the folder next to the executable.
 	Home string
 	// OpenBrowser opens the UI once the server listens.
@@ -96,9 +96,9 @@ func Run(opts Options) error {
 		appURL = "http://" + addr
 	}
 	if wd, err := os.Getwd(); err == nil {
-		log.Printf("Mappy data: %s", wd)
+		log.Printf("Orbis data: %s", wd)
 	}
-	log.Printf("Mappy listening on %s", appURL)
+	log.Printf("Orbis listening on %s", appURL)
 	if opts.OpenBrowser {
 		go func() {
 			time.Sleep(450 * time.Millisecond)
@@ -120,22 +120,26 @@ type exportRequest struct {
 	TryH     int     `json:"tryH"`
 	Parallel bool    `json:"parallel"`
 
+	GLB       bool    `json:"glb"`
+	USD       bool    `json:"usd"`
 	OBJ       bool    `json:"obj"`
 	Minecraft bool    `json:"minecraft"`
 	BlockSize float64 `json:"blockSize"`
 }
 
-func (req exportRequest) toLibrary() mappy.Request {
+func (req exportRequest) toLibrary() orbis.Request {
 	parallel := 1
 	if req.Parallel {
-		parallel = mappy.DefaultParallel
+		parallel = orbis.DefaultParallel
 	}
-	return mappy.Request{
+	return orbis.Request{
 		Name:         req.Name,
-		Bounds:       mappy.Bounds{North: req.North, South: req.South, East: req.East, West: req.West},
+		Bounds:       orbis.Bounds{North: req.North, South: req.South, East: req.East, West: req.West},
 		Zoom:         req.Zoom,
 		HeightLayers: req.TryH,
 		Parallel:     parallel,
+		GLB:          req.GLB,
+		USD:          req.USD,
 		OBJ:          req.OBJ,
 		Minecraft:    req.Minecraft,
 		BlockSize:    req.BlockSize,
@@ -231,9 +235,9 @@ func completedExport(output string) (time.Time, string, bool) {
 }
 
 func configureWorkingDirectory() {
-	if root := strings.TrimSpace(os.Getenv("MAPPY_HOME")); root != "" {
+	if root := strings.TrimSpace(os.Getenv("ORBIS_HOME")); root != "" {
 		if err := os.Chdir(root); err != nil {
-			log.Printf("MAPPY_HOME could not be opened: %v", err)
+			log.Printf("ORBIS_HOME could not be opened: %v", err)
 		}
 		return
 	}
@@ -284,7 +288,7 @@ func createExport(w http.ResponseWriter, r *http.Request) {
 	}
 	id := time.Now().UTC().Format("20060102-150405")
 	j := &job{
-		ID: id, Name: mappy.ExportName(req.Name, req.Bounds), State: "running",
+		ID: id, Name: orbis.ExportName(req.Name, req.Bounds), State: "running",
 		Started: time.Now().Format(time.RFC3339), Total: req.RequestCount(),
 	}
 	jobsMu.Lock()
@@ -347,8 +351,8 @@ func serveJobFile(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path)
 }
 
-func runExport(j *job, req mappy.Request) {
-	result, err := exportWith(req, mappy.Progress{
+func runExport(j *job, req orbis.Request) {
+	result, err := exportWith(req, orbis.Progress{
 		Log: func(msg string) {
 			j.mu.Lock()
 			j.Logs = append(j.Logs, msg)
@@ -379,16 +383,16 @@ func runExport(j *job, req mappy.Request) {
 	j.Logs = append(j.Logs, fmt.Sprintf("done: %d exported", result.Exported))
 }
 
-func exportWith(req mappy.Request, progress mappy.Progress) (mappy.Result, error) {
-	client, err := mappy.Open(mappy.Options{ConfigPath: configPath, CacheDir: cacheDir})
+func exportWith(req orbis.Request, progress orbis.Progress) (orbis.Result, error) {
+	client, err := orbis.Open(orbis.Options{ConfigPath: configPath, CacheDir: cacheDir})
 	if err != nil {
-		return mappy.Result{}, err
+		return orbis.Result{}, err
 	}
 	return client.Export(context.Background(), req, progress)
 }
 
 func getSettings(w http.ResponseWriter, _ *http.Request) {
-	cfg, err := mappy.LoadConfig(configPath)
+	cfg, err := orbis.LoadConfig(configPath)
 	ready := err == nil && cfg.IsValid()
 	_, fileErr := os.Stat(configPath)
 	configMode := "setup"
@@ -409,21 +413,21 @@ func saveSetupConfig(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
 	defer r.Body.Close()
 
-	supplied, err := mappy.ParseConfig(r.Body)
+	supplied, err := orbis.ParseConfig(r.Body)
 	if err != nil {
-		writeError(w, http.StatusBadRequest, "Das ist keine gültige config.json für Mappy.")
+		writeError(w, http.StatusBadRequest, "Das ist keine gültige config.json für Orbis.")
 		return
 	}
 	if err := validateSetupConfig(supplied); err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if _, err := mappy.Connect(supplied, cacheDir); err != nil {
+	if _, err := orbis.Connect(supplied, cacheDir); err != nil {
 		writeError(w, http.StatusBadRequest, "Die Konfiguration konnte keine Verbindung zum 3D-Kartendienst herstellen.")
 		return
 	}
 	if err := writeSetupConfig(configPath, supplied); err != nil {
-		writeError(w, http.StatusInternalServerError, "Mappy konnte die Konfiguration nicht lokal speichern.")
+		writeError(w, http.StatusInternalServerError, "Orbis konnte die Konfiguration nicht lokal speichern.")
 		return
 	}
 	resetCoverageClient()
@@ -456,40 +460,40 @@ func scanSetupFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	token := mappy.ScanToken(file)
+	token := orbis.ScanToken(file)
 	if token == "" {
 		writeError(w, http.StatusBadRequest, "In dieser Datei steckt kein Apple-Clientwert. Nutze die GeoServices-Datei.")
 		return
 	}
 
-	supplied := mappy.ConfigFromToken(token)
-	if _, err := mappy.Connect(supplied, cacheDir); err != nil {
+	supplied := orbis.ConfigFromToken(token)
+	if _, err := orbis.Connect(supplied, cacheDir); err != nil {
 		writeError(w, http.StatusBadRequest, "Der gefundene Wert wurde vom 3D-Kartendienst nicht akzeptiert.")
 		return
 	}
 	if err := writeSetupConfig(configPath, supplied); err != nil {
-		writeError(w, http.StatusInternalServerError, "Mappy konnte die Konfiguration nicht lokal speichern.")
+		writeError(w, http.StatusInternalServerError, "Orbis konnte die Konfiguration nicht lokal speichern.")
 		return
 	}
 	resetCoverageClient()
 	writeJSON(w, http.StatusOK, map[string]any{"ready": true})
 }
 
-// validateSetupConfig is mappy.ValidateConfig with the German wording of the
+// validateSetupConfig is orbis.ValidateConfig with the German wording of the
 // setup gate.
-func validateSetupConfig(cfg mappy.Config) error {
-	switch err := mappy.ValidateConfig(cfg); {
-	case errors.Is(err, mappy.ErrManifestURL):
+func validateSetupConfig(cfg orbis.Config) error {
+	switch err := orbis.ValidateConfig(cfg); {
+	case errors.Is(err, orbis.ErrManifestURL):
 		return errors.New("Die Manifest-URL muss eine gültige Apple-HTTPS-Adresse sein.")
-	case errors.Is(err, mappy.ErrToken):
+	case errors.Is(err, orbis.ErrToken):
 		return errors.New("Die config.json enthält keinen gültigen Clientwert.")
 	default:
 		return err
 	}
 }
 
-func writeSetupConfig(path string, cfg mappy.Config) error {
-	return mappy.SaveConfig(path, cfg)
+func writeSetupConfig(path string, cfg orbis.Config) error {
+	return orbis.SaveConfig(path, cfg)
 }
 
 func searchPlaces(w http.ResponseWriter, r *http.Request) {
@@ -502,7 +506,7 @@ func searchPlaces(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "search is too long")
 		return
 	}
-	places, err := mappy.Search(r.Context(), query, 5)
+	places, err := orbis.Search(r.Context(), query, 5)
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "place search is unavailable")
 		return
@@ -517,7 +521,7 @@ func reversePlaceName(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid coordinates")
 		return
 	}
-	place, err := mappy.Reverse(r.Context(), lat, lon)
+	place, err := orbis.Reverse(r.Context(), lat, lon)
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "place name is unavailable")
 		return
@@ -532,19 +536,19 @@ func getCoverage(w http.ResponseWriter, r *http.Request) {
 	west, errWest := strconv.ParseFloat(r.URL.Query().Get("west"), 64)
 	zoom, errZoom := strconv.Atoi(r.URL.Query().Get("zoom"))
 	heightLayers, errHeight := strconv.Atoi(r.URL.Query().Get("height"))
-	bounds := mappy.Bounds{North: north, South: south, East: east, West: west}
+	bounds := orbis.Bounds{North: north, South: south, East: east, West: west}
 	if errNorth != nil || errSouth != nil || errEast != nil || errWest != nil || errZoom != nil ||
 		bounds.Validate() != nil || zoom < 13 || zoom > 20 {
 		writeError(w, http.StatusBadRequest, "invalid coverage bounds")
 		return
 	}
 	if errHeight != nil || heightLayers < 1 {
-		heightLayers = mappy.DefaultHeightLayers
+		heightLayers = orbis.DefaultHeightLayers
 	}
 	if heightLayers > 64 {
 		heightLayers = 64
 	}
-	if bounds.Tiles(zoom).Count() > mappy.DefaultCoverageMaxTiles {
+	if bounds.Tiles(zoom).Count() > orbis.DefaultCoverageMaxTiles {
 		writeError(w, http.StatusServiceUnavailable, "zoom in to check detailed 3D coverage")
 		return
 	}
@@ -553,7 +557,7 @@ func getCoverage(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, "3D coverage is unavailable")
 		return
 	}
-	coverage, err := client.Coverage(r.Context(), bounds, mappy.CoverageOptions{Zoom: zoom, HeightLayers: heightLayers})
+	coverage, err := client.Coverage(r.Context(), bounds, orbis.CoverageOptions{Zoom: zoom, HeightLayers: heightLayers})
 	if err != nil {
 		writeError(w, http.StatusServiceUnavailable, err.Error())
 		return
@@ -567,13 +571,13 @@ func getCoverage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func loadCoverageClient() (*mappy.Client, error) {
+func loadCoverageClient() (*orbis.Client, error) {
 	coverageMu.Lock()
 	defer coverageMu.Unlock()
 	if coverageClient != nil {
 		return coverageClient, nil
 	}
-	client, err := mappy.Open(mappy.Options{ConfigPath: configPath, CacheDir: cacheDir})
+	client, err := orbis.Open(orbis.Options{ConfigPath: configPath, CacheDir: cacheDir})
 	if err != nil {
 		return nil, err
 	}

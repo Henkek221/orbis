@@ -1,7 +1,7 @@
-# Mappy-Testcheckliste
+# Orbis-Testcheckliste
 
 Danke fürs Testen. Es geht nicht darum, alles perfekt zu bedienen, sondern die
-Stellen zu finden, an denen Mappy noch unklar oder unzuverlässig ist.
+Stellen zu finden, an denen Orbis noch unklar oder unzuverlässig ist.
 
 ## Grundtest
 

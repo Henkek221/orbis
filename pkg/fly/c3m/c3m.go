@@ -8,9 +8,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/Henkek221/mappy/pkg/bin"
-	"github.com/Henkek221/mappy/pkg/fly/c3m/codec" // Using a non-internal package
-	"github.com/Henkek221/mappy/pkg/mth"
+	"github.com/Henkek221/orbis/pkg/bin"
+	"github.com/Henkek221/orbis/pkg/fly/c3m/codec" // Using a non-internal package
+	"github.com/Henkek221/orbis/pkg/mth"
 )
 
 var l = log.New(os.Stderr, "", 0)

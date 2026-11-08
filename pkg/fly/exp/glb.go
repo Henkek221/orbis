@@ -12,8 +12,8 @@ import (
 	"runtime/debug"
 	"sort"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 // GLBExport writes one binary glTF 2.0 file with embedded textures. Positions
@@ -53,10 +53,10 @@ func NewGLB(path string, latitude, longitude float64) (*GLBExport, error) {
 		minBounds: [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)},
 		maxBounds: [3]float64{math.Inf(-1), math.Inf(-1), math.Inf(-1)},
 	}
-	e.doc.Asset = gltfAsset{Version: "2.0", Generator: "Mappy"}
+	e.doc.Asset = gltfAsset{Version: "2.0", Generator: "Orbis"}
 	e.doc.Samplers = []gltfSampler{{MagFilter: 9729, MinFilter: 9987, WrapS: 33071, WrapT: 33071}}
-	e.doc.Scenes = []gltfScene{{Name: "mappy", Nodes: []int{0}}}
-	e.doc.Nodes = []gltfNode{{Name: "mappy"}}
+	e.doc.Scenes = []gltfScene{{Name: "orbis", Nodes: []int{0}}}
+	e.doc.Nodes = []gltfNode{{Name: "orbis"}}
 	e.doc.ExtensionsUsed = []string{"KHR_materials_unlit"}
 	return e, nil
 }
@@ -171,14 +171,14 @@ func (e *GLBExport) Close() error {
 	}
 	e.doc.Buffers = []gltfBuffer{{ByteLength: e.bin.Len()}}
 	e.doc.Asset.Extras = map[string]any{
-		"mappy": map[string]any{
+		"orbis": map[string]any{
 			"frame":      "local metres, +X east, +Y up, +Z south; origin is the export centre at ecefOrigin",
 			"centre":     map[string]float64{"lat": e.latDeg, "lon": e.lonDeg},
 			"ecefOrigin": e.origin,
 			"boundsMin":  e.minBounds,
 			"boundsMax":  e.maxBounds,
 			"triangles":  e.triangles,
-			"source":     "Apple Maps 3D data; see Mappy's README for terms",
+			"source":     "Apple Maps 3D data; see Orbis's README for terms",
 		},
 	}
 	jsonChunk, err := json.Marshal(e.doc)

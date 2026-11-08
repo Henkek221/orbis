@@ -14,8 +14,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/oth"
 )
 
 const (
@@ -75,7 +75,7 @@ func New(dir string, latitude, longitude float64, opt Options) (*World, error) {
 		opt.BaseY = worldMinY
 	}
 	if opt.Name == "" {
-		opt.Name = "Mappy export"
+		opt.Name = "Orbis export"
 	}
 	if err := os.MkdirAll(filepath.Join(dir, "region"), 0o755); err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ func (g *grid) writeRegion(path string, keys [][2]int32) error {
 }
 
 func (w *World) writeReadme() error {
-	text := fmt.Sprintf(`Mappy Minecraft export
+	text := fmt.Sprintf(`Orbis Minecraft export
 ======================
 
 World:      %s

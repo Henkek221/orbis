@@ -1,4 +1,4 @@
-package mappy
+package orbis
 
 import (
 	"math"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Henkek221/mappy/pkg/mth"
+	"github.com/Henkek221/orbis/pkg/mth"
 )
 
 func TestSlugifyKeepsHumanPlaceNamesSafe(t *testing.T) {
@@ -70,7 +70,7 @@ func TestRequestCountIncludesHeightLayers(t *testing.T) {
 }
 
 func TestConfiguredMaxRequestsCanBeRaised(t *testing.T) {
-	t.Setenv("MAPPY_MAX_REQUESTS", "750000")
+	t.Setenv("ORBIS_MAX_REQUESTS", "750000")
 	if got := MaxRequestsFromEnv(); got != 750000 {
 		t.Fatalf("MaxRequestsFromEnv() = %d, want 750000", got)
 	}

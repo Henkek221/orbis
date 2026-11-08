@@ -1,6 +1,6 @@
 # Credits und Herkunft
 
-Mappy ist eine eigenständige Benutzeroberfläche und ein lokaler Export-Workflow.
+Orbis ist eine eigenständige Benutzeroberfläche und ein lokaler Export-Workflow.
 Das Projekt wäre ohne die technische Vorarbeit anderer nicht möglich.
 
 ## Technische Grundlage
@@ -17,7 +17,7 @@ Abruflogik.
 
 [christiangda/flyover-reverse-engineering](https://github.com/christiangda/flyover-reverse-engineering)
 hat die ursprüngliche Arbeit für neuere Go- und Protobuf-Versionen modernisiert.
-Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/mappy`.
+Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/orbis`.
 
 ## Oberfläche und Assets
 
@@ -28,7 +28,7 @@ Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/mappy`.
   zugehörige CC0-Erklärung liegt in
   [`internal/server/static/assets/TOY-CAR-LICENSE.txt`](internal/server/static/assets/TOY-CAR-LICENSE.txt).
 
-## Was in Mappy neu hinzugekommen ist
+## Was in Orbis neu hinzugekommen ist
 
 - lokale Browser-Oberfläche mit Ortssuche und Kartenauswahl
 - sichtbarer, ehrlicher Status für bekannte und unbekannte 3D-Abdeckung
@@ -37,7 +37,7 @@ Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/mappy`.
 - Lauf- und Fahrmodus, Licht, Tageszeit und Darstellungsoptionen
 - lokale Wiederherstellung abgeschlossener Exporte
 - Ein-Klick-Builds für macOS, Windows und Linux
-- Kommandozeile `mappy` und Go-Bibliothek `pkg/mappy`
+- Kommandozeile `orbis` und Go-Bibliothek `pkg/orbis`
 - GLB- und USD(Z)-Export für Game-Engines und Apple-Plattformen
 - Analyse von Apples neuem 3D-Format R3D v2 (Container, Index, Texturen)
 
@@ -45,8 +45,8 @@ Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/mappy`.
 
 Die ursprünglichen Repositories weisen derzeit keine verlässliche
 `LICENSE`-Datei aus. Eine Nennung der Urheber ist kein Ersatz für eine Lizenz.
-Mappy vergibt deshalb keine pauschale neue Lizenz für geerbte Bestandteile.
+Orbis vergibt deshalb keine pauschale neue Lizenz für geerbte Bestandteile.
 
 Apple, Apple Maps und Flyover sind Marken beziehungsweise Dienste von Apple Inc.
-Mappy ist nicht mit Apple verbunden. Für Karten-, 3D- und Exportdaten können
+Orbis ist nicht mit Apple verbunden. Für Karten-, 3D- und Exportdaten können
 zusätzliche Bedingungen gelten.

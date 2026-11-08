@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/Henkek221/mappy/pkg/bin"
+	"github.com/Henkek221/orbis/pkg/bin"
 	"github.com/ulikunitz/xz/lzma"
 )
 

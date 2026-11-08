@@ -1,4 +1,4 @@
-module github.com/Henkek221/mappy
+module github.com/Henkek221/orbis
 
 go 1.24.3
 

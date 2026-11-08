@@ -1,9 +1,9 @@
-# Mappy
+# Orbis
 
 Select an area, pull Apple's 3D map mesh for it, export it as GLB, USD(Z), OBJ
-and/or a Minecraft world. One Go binary, `cmd/mappy`, is a CLI (`export`,
+and/or a Minecraft world. One Go binary, `cmd/orbis`, is a CLI (`export`,
 `coverage`, `search`, `regions`, `config`) and serves the browser UI on
-`localhost:8787` (`mappy ui`). All logic lives in the library `pkg/mappy`.
+`localhost:8787` (`orbis ui`). All logic lives in the library `pkg/orbis`.
 Nothing is uploaded, there is no account.
 
 ## Working agreements
@@ -19,8 +19,8 @@ Nothing is uploaded, there is no account.
   covers them.
 
 ```bash
-go build -mod=vendor ./... && go run -mod=vendor ./cmd/mappy ui
-go run -mod=vendor ./cmd/mappy export --place "Arc de Triomphe" --size 150
+go build -mod=vendor ./... && go run -mod=vendor ./cmd/orbis ui
+go run -mod=vendor ./cmd/orbis export --place "Arc de Triomphe" --size 150
 ```
 
 ## How a tile becomes a file
@@ -36,7 +36,7 @@ config.json (tokenP1)
 ```
 
 The whole scan lives in `Client.Export` in
-[pkg/mappy/export.go](pkg/mappy/export.go). Tiles are fetched in parallel
+[pkg/orbis/export.go](pkg/orbis/export.go). Tiles are fetched in parallel
 and funnelled through one channel into a single consumer goroutine, so exporters
 are **not** called concurrently and need no locking.
 
@@ -49,8 +49,8 @@ format means implementing `exp.Export` (`Next(c3m.C3M, string) error` and
 
 | Path | Role |
 | --- | --- |
-| `cmd/mappy` | The binary users run: CLI subcommands, `ui` starts the server. No args from a terminal prints help; launched without a terminal (Finder, Explorer) it starts the UI. |
-| `pkg/mappy` | The toolkit: `Open`/`Connect`, `Export`, `Coverage`, `Region(s)`, geocoding, config helpers, bounds and naming. Server and CLI only call this. |
+| `cmd/orbis` | The binary users run: CLI subcommands, `ui` starts the server. No args from a terminal prints help; launched without a terminal (Finder, Explorer) it starts the UI. |
+| `pkg/orbis` | The toolkit: `Open`/`Connect`, `Export`, `Coverage`, `Region(s)`, geocoding, config helpers, bounds and naming. Server and CLI only call this. |
 | `internal/server` | HTTP API, job state, embedded static UI (`static/`). |
 | `cmd/export-obj`, `cmd/auth`, `cmd/parse-*` | Low-level tools inherited from upstream. |
 | `pkg/mps` | Apple map service: auth, session, ResourceManifest, cache. |
@@ -125,8 +125,10 @@ versions.
 Plain HTML, CSS and JS in `internal/server/static`, embedded with `go:embed`. No
 build step, no framework. Leaflet and Lucide come from unpkg.
 
-The design language is soft and edible: cream-pink paper, leaf green, berry pink,
-sun orange, large radii, pill buttons. All tokens live in `:root` of
+The design language is Apple-like: system greys (`#f5f5f7` paper, `#1d1d1f`
+ink), the SF system font stack, system blue for actions and selection, system
+green only for 3D coverage, system orange for warnings, restrained radii and
+soft neutral shadows. All tokens live in `:root` of
 [styles.css](internal/server/static/styles.css). Use the variables, never raw hex.
 
 The OpenStreetMap raster is pulled into the palette with a filter on
@@ -140,5 +142,5 @@ because they are aimed at first-time local setup. Keep that split.
 ## Provenance
 
 Built on `retroplasma/flyover-reverse-engineering` and `christiangda`'s fork; the
-module path is now `github.com/Henkek221/mappy`. The upstream licence is unresolved, so the repo is readable but must not be presented
+module path is now `github.com/Henkek221/orbis`. The upstream licence is unresolved, so the repo is readable but must not be presented
 as OSI open source or redistributed commercially. See README and CREDITS.

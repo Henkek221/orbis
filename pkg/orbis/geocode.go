@@ -1,4 +1,4 @@
-package mappy
+package orbis
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-// GeocodeUserAgent identifies Mappy to OpenStreetMap Nominatim, whose usage
+// GeocodeUserAgent identifies Orbis to OpenStreetMap Nominatim, whose usage
 // policy requires a descriptive agent.
-var GeocodeUserAgent = "Mappy/1.0 (+https://github.com/Henkek221/mappy)"
+var GeocodeUserAgent = "Orbis/1.0 (+https://github.com/Henkek221/orbis)"
 
 var geocodeClient = &http.Client{Timeout: 8 * time.Second}
 

@@ -34,6 +34,8 @@ const els = {
   zoomInput: document.getElementById("zoomInput"),
   heightInput: document.getElementById("heightInput"),
   parallelInput: document.getElementById("parallelInput"),
+  glbInput: document.getElementById("glbInput"),
+  usdInput: document.getElementById("usdInput"),
   objInput: document.getElementById("objInput"),
   minecraftInput: document.getElementById("minecraftInput"),
   blockSizeInput: document.getElementById("blockSizeInput"),
@@ -152,6 +154,8 @@ map.on("mouseup", (event) => {
   resolveSelectionName();
 });
 
+els.glbInput.addEventListener("change", updateFormats);
+els.usdInput.addEventListener("change", updateFormats);
 els.objInput.addEventListener("change", updateFormats);
 els.minecraftInput.addEventListener("change", updateFormats);
 els.zoomInput.addEventListener("change", updateSelection);
@@ -245,6 +249,8 @@ function requestFromSelection() {
     zoom: Number(els.zoomInput.value),
     tryH: Number(els.heightInput.value),
     parallel: els.parallelInput.checked,
+    glb: els.glbInput.checked,
+    usd: els.usdInput.checked,
     obj: els.objInput.checked,
     minecraft: els.minecraftInput.checked,
     blockSize: Number(els.blockSizeInput.value),
@@ -253,9 +259,10 @@ function requestFromSelection() {
 
 function updateFormats() {
   // At least one format has to stay on, otherwise there is nothing to export.
-  if (!els.objInput.checked && !els.minecraftInput.checked) els.objInput.checked = true;
+  const formats = [els.glbInput, els.usdInput, els.objInput, els.minecraftInput];
+  if (!formats.some((input) => input.checked)) els.glbInput.checked = true;
   els.blockSizeField.hidden = !els.minecraftInput.checked;
-  for (const input of [els.objInput, els.minecraftInput]) {
+  for (const input of formats) {
     input.closest(".format-card").classList.toggle("is-on", input.checked);
   }
   setExportLabel();
@@ -263,8 +270,15 @@ function updateFormats() {
 }
 
 function exportLabel() {
-  if (els.objInput.checked && els.minecraftInput.checked) return "Export both";
-  return els.minecraftInput.checked ? "Export Minecraft world" : "Export OBJ";
+  const names = [
+    [els.glbInput, "GLB"],
+    [els.usdInput, "USDZ"],
+    [els.objInput, "OBJ"],
+    [els.minecraftInput, "Minecraft"],
+  ]
+    .filter(([input]) => input.checked)
+    .map(([, name]) => name);
+  return names.length > 2 ? `Export ${names.length} formats` : `Export ${names.join(" + ")}`;
 }
 
 function setExportLabel() {
@@ -293,7 +307,7 @@ function updateSelection() {
 	els.estimate.classList.toggle("error", tooLarge || coverage.type === "none");
 	els.estimate.classList.toggle("warn", coverage.type === "partial" || coverage.type === "loading" || coverage.type === "unknown");
 	if (tooLarge) {
-		els.estimate.textContent = `This area needs ${estimate.requests.toLocaleString()} lookups; the current limit is ${exportRequestLimit.toLocaleString()}. Draw a smaller area, lower the detail, or raise MAPPY_MAX_REQUESTS.`;
+		els.estimate.textContent = `This area needs ${estimate.requests.toLocaleString()} lookups; the current limit is ${exportRequestLimit.toLocaleString()}. Draw a smaller area, lower the detail, or raise ORBIS_MAX_REQUESTS.`;
 	} else if (coverage.type === "none") {
 		els.estimate.textContent = "No 3D data here. Move the selection into a green area.";
 	} else if (coverage.type === "partial") {
@@ -493,7 +507,7 @@ async function loadCoverage() {
     const message = error.message || "Coverage check unavailable";
     els.coverageCount.textContent = message;
     els.areaPrompt.textContent = "Coverage could not be pre-checked. The export will verify every selected tile directly.";
-		if (!selectionBounds) els.estimate.textContent = "Mark an area. Mappy will verify its 3D data during export.";
+		if (!selectionBounds) els.estimate.textContent = "Mark an area. Orbis will verify its 3D data during export.";
     if (selectionBounds) updateSelection();
   }
 }
@@ -682,7 +696,7 @@ function updateJobProgress(processed, total) {
 async function loadSettings() {
   try {
     const response = await fetch("/api/settings");
-    if (!response.ok) throw new Error("Mappy could not check its local setup.");
+    if (!response.ok) throw new Error("Orbis could not check its local setup.");
     const settings = await response.json();
     if (Number.isInteger(settings.maxRequests) && settings.maxRequests > 0) {
       exportRequestLimit = settings.maxRequests;
@@ -697,7 +711,7 @@ async function loadSettings() {
     return false;
   } catch (_error) {
     showSetupImport();
-    els.setupStatus.textContent = "Mappy konnte die lokale Einrichtung nicht prüfen. Wähle die config.json manuell aus.";
+    els.setupStatus.textContent = "Orbis konnte die lokale Einrichtung nicht prüfen. Wähle die config.json manuell aus.";
     els.setupStatus.classList.add("is-error");
     return false;
   }
@@ -717,7 +731,7 @@ function showSetupImport(platform = "") {
 
 async function importSetupFile(file) {
   if (file.size > 64 * 1024) {
-    showSetupError("Diese Datei ist zu groß für eine Mappy-Konfiguration.");
+    showSetupError("Diese Datei ist zu groß für eine Orbis-Konfiguration.");
     return;
   }
 
@@ -729,7 +743,7 @@ async function importSetupFile(file) {
       throw new Error("missing token");
     }
   } catch (_error) {
-    showSetupError("Das ist keine gültige config.json für Mappy.");
+    showSetupError("Das ist keine gültige config.json für Orbis.");
     return;
   }
 
@@ -776,8 +790,8 @@ els.setupScanForm.addEventListener("submit", async (event) => {
 
 function finishSetup() {
   els.setupStatus.className = "setup-status";
-  els.setupStatus.textContent = "Fertig. Mappy ist startklar.";
-  els.liveRegion.textContent = "Mappy ist startklar.";
+  els.setupStatus.textContent = "Fertig. Orbis ist startklar.";
+  els.liveRegion.textContent = "Orbis ist startklar.";
   window.setTimeout(() => {
     els.setupGate.hidden = true;
     els.searchInput.focus();

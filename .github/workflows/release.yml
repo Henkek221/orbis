@@ -1,4 +1,4 @@
-name: Mappy Release
+name: Orbis Release
 
 on:
   workflow_dispatch:
@@ -33,13 +33,13 @@ jobs:
       - name: Pakete bauen
         env:
           VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version }}
-        run: ./scripts/build_mappy_releases.sh "$VERSION"
+        run: ./scripts/build_orbis_releases.sh "$VERSION"
 
       - name: Pakete als Workflow-Artefakt speichern
         uses: actions/upload-artifact@v4
         with:
-          name: mappy-${{ github.run_number }}
-          path: dist/mappy/releases/*.zip
+          name: orbis-${{ github.run_number }}
+          path: dist/orbis/releases/*.zip
           if-no-files-found: error
 
       - name: GitHub Release erstellen
@@ -49,5 +49,5 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             --generate-notes \
-            --title "Mappy ${GITHUB_REF_NAME}" \
-            dist/mappy/releases/*.zip
+            --title "Orbis ${GITHUB_REF_NAME}" \
+            dist/orbis/releases/*.zip

@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Henkek221/mappy/pkg/mappy"
+	"github.com/Henkek221/orbis/pkg/orbis"
 )
 
 func runExport(args []string) int {
@@ -21,15 +21,15 @@ func runExport(args []string) int {
 	out := fs.String("out", ".", "directory that receives the export folder")
 	name := fs.String("name", "", "export name (default: the place or the coordinates)")
 	format := fs.String("format", "glb", "comma-separated outputs: glb, usdz, obj, minecraft")
-	zoom := fs.Int("zoom", mappy.DefaultZoom, "tile level 13-20; 20 is source quality")
-	heights := fs.Int("heights", mappy.DefaultHeightLayers, "octree height layers to scan; raise for skyscrapers")
-	parallel := fs.Int("parallel", mappy.DefaultParallel, "concurrent downloads")
-	blockSize := fs.Float64("block-size", mappy.DefaultBlockSize, "Minecraft metres per block (0.25-4)")
-	maxRequests := fs.Int("max-requests", mappy.MaxRequestsFromEnv(), "abort if the scan needs more tile lookups")
+	zoom := fs.Int("zoom", orbis.DefaultZoom, "tile level 13-20; 20 is source quality")
+	heights := fs.Int("heights", orbis.DefaultHeightLayers, "octree height layers to scan; raise for skyscrapers")
+	parallel := fs.Int("parallel", orbis.DefaultParallel, "concurrent downloads")
+	blockSize := fs.Float64("block-size", orbis.DefaultBlockSize, "Minecraft metres per block (0.25-4)")
+	maxRequests := fs.Int("max-requests", orbis.MaxRequestsFromEnv(), "abort if the scan needs more tile lookups")
 	jsonOut := fs.Bool("json", false, "print the result as JSON on stdout")
 	quiet := fs.Bool("quiet", false, "no progress output")
 	fs.Usage = func() {
-		fmt.Fprint(os.Stderr, "Usage: mappy export (--bbox W,S,E,N | --center LAT,LON | --place NAME) [flags]\n\n")
+		fmt.Fprint(os.Stderr, "Usage: orbis export (--bbox W,S,E,N | --center LAT,LON | --place NAME) [flags]\n\n")
 		fs.PrintDefaults()
 	}
 	if _, err := parseArgs(fs, args); err != nil {
@@ -43,7 +43,7 @@ func runExport(args []string) int {
 	if err != nil {
 		return fail(err)
 	}
-	req := mappy.Request{
+	req := orbis.Request{
 		Name:         *name,
 		Bounds:       bounds,
 		Zoom:         *zoom,
@@ -120,7 +120,7 @@ func runExport(args []string) int {
 		return fail(err)
 	}
 	if result.Exported == 0 {
-		fmt.Fprintln(os.Stderr, "mappy: no 3D tiles in this area; try `mappy coverage` with the same area")
+		fmt.Fprintln(os.Stderr, "orbis: no 3D tiles in this area; try `orbis coverage` with the same area")
 		return 3
 	}
 	return 0
@@ -143,8 +143,8 @@ func newProgressPrinter(enabled bool) *progressPrinter {
 	return &progressPrinter{enabled: enabled, live: enabled && isTerminal(os.Stderr)}
 }
 
-func (p *progressPrinter) hooks() mappy.Progress {
-	return mappy.Progress{Log: p.log, Step: p.step}
+func (p *progressPrinter) hooks() orbis.Progress {
+	return orbis.Progress{Log: p.log, Step: p.step}
 }
 
 func (p *progressPrinter) logf(format string, args ...any) {

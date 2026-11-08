@@ -1,7 +1,7 @@
 package mps
 
 import (
-	"github.com/Henkek221/mappy/pkg/mps/auth"
+	"github.com/Henkek221/orbis/pkg/mps/auth"
 )
 
 // Session has the session ID for AuthURL

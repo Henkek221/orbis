@@ -1,12 +1,12 @@
-MAPPY STARTEN
+ORBIS STARTEN
 =============
 
-MAPPY STARTEN.sh doppelklicken und Ausführen wählen.
+ORBIS STARTEN.sh doppelklicken und Ausführen wählen.
 
 Falls dein Dateimanager Skripte nur als Text öffnet:
 
   1. Terminal in diesem Ordner öffnen.
-  2. ./MAPPY\ STARTEN.sh eingeben.
+  2. ./ORBIS\ STARTEN.sh eingeben.
 
-Wenn Mappy beim ersten Start nach einer config.json fragt, zieh die separat
-erhaltene Datei einfach in das Mappy-Fenster. Sie wird nur lokal gespeichert.
+Wenn Orbis beim ersten Start nach einer config.json fragt, zieh die separat
+erhaltene Datei einfach in das Orbis-Fenster. Sie wird nur lokal gespeichert.

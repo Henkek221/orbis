@@ -12,15 +12,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Henkek221/mappy/pkg/fly"
-	"github.com/Henkek221/mappy/pkg/fly/c3m"
-	"github.com/Henkek221/mappy/pkg/fly/c3mm"
-	"github.com/Henkek221/mappy/pkg/fly/exp"
-	"github.com/Henkek221/mappy/pkg/mps"
-	"github.com/Henkek221/mappy/pkg/mps/config"
-	"github.com/Henkek221/mappy/pkg/mth"
-	"github.com/Henkek221/mappy/pkg/oth"
-	"github.com/Henkek221/mappy/pkg/web"
+	"github.com/Henkek221/orbis/pkg/fly"
+	"github.com/Henkek221/orbis/pkg/fly/c3m"
+	"github.com/Henkek221/orbis/pkg/fly/c3mm"
+	"github.com/Henkek221/orbis/pkg/fly/exp"
+	"github.com/Henkek221/orbis/pkg/mps"
+	"github.com/Henkek221/orbis/pkg/mps/config"
+	"github.com/Henkek221/orbis/pkg/mth"
+	"github.com/Henkek221/orbis/pkg/oth"
+	"github.com/Henkek221/orbis/pkg/web"
 )
 
 var l = log.New(os.Stderr, "", 0)
