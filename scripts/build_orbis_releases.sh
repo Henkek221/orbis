@@ -67,6 +67,7 @@ fi
 cp packaging/HIER-STARTEN-macOS.txt "$DIST/work/mac/HIER STARTEN.txt"
 cp DISTRIBUTION.md "$DIST/work/mac/README.md"
 cp CREDITS.md "$DIST/work/mac/CREDITS.md"
+cp LICENSE NOTICE "$DIST/work/mac"
 (cd "$DIST/work/mac" && zip -qry "$DIST/releases/orbis-${VERSION}-mac.zip" .)
 
 mkdir -p "$DIST/work/windows"
@@ -76,6 +77,7 @@ cp packaging/HIER-STARTEN-Windows.txt "$DIST/work/windows/HIER STARTEN.txt"
 cp config.example.json "$DIST/work/windows/config.example.json"
 cp DISTRIBUTION.md "$DIST/work/windows/README.md"
 cp CREDITS.md "$DIST/work/windows/CREDITS.md"
+cp LICENSE NOTICE "$DIST/work/windows"
 (cd "$DIST/work/windows" && zip -qry "$DIST/releases/orbis-${VERSION}-windows.zip" .)
 
 mkdir -p "$DIST/work/linux-x64" "$DIST/work/linux-arm64"
@@ -89,6 +91,7 @@ for folder in linux-x64 linux-arm64; do
   cp config.example.json "$DIST/work/$folder/config.example.json"
   cp DISTRIBUTION.md "$DIST/work/$folder/README.md"
   cp CREDITS.md "$DIST/work/$folder/CREDITS.md"
+  cp LICENSE NOTICE "$DIST/work/$folder"
   (cd "$DIST/work/$folder" && zip -qry "$DIST/releases/orbis-${VERSION}-${folder}.zip" .)
 done
 
