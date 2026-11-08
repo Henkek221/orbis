@@ -21,16 +21,18 @@ var (
 )
 
 func heicTools() []heicTool {
+	// The HEIC is already lossy, so the JPEG is a second generation. Encode it
+	// at the highest quality each tool offers instead of its default (~75-80).
 	tools := []heicTool{
-		{"magick", func(src, dst string) []string { return []string{src, dst} }},
-		{"heif-convert", func(src, dst string) []string { return []string{src, dst} }},
+		{"magick", func(src, dst string) []string { return []string{src, "-quality", "97", dst} }},
+		{"heif-convert", func(src, dst string) []string { return []string{"-q", "97", src, dst} }},
 		{"ffmpeg", func(src, dst string) []string {
-			return []string{"-y", "-loglevel", "error", "-i", src, dst}
+			return []string{"-y", "-loglevel", "error", "-i", src, "-q:v", "1", dst}
 		}},
 	}
 	if runtime.GOOS == "darwin" {
 		tools = append([]heicTool{{"sips", func(src, dst string) []string {
-			return []string{"-s", "format", "jpeg", src, "--out", dst}
+			return []string{"-s", "format", "jpeg", "-s", "formatOptions", "best", src, "--out", dst}
 		}}}, tools...)
 	}
 	return tools

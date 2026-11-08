@@ -5,7 +5,7 @@ config.json
 cache/
 downloaded_files/
 dist/
-bin/
+/bin/
 *.log
 
 # Lokale Prüf- und Aufnahme-Artefakte
