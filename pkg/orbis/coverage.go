@@ -59,6 +59,22 @@ func (c *Client) Coverage(ctx context.Context, b Bounds, opt CoverageOptions) (C
 	}
 
 	scanners := make(map[int]*flyContext)
+	var index *r3dIndex
+	if src, err := c.r3d(); err == nil {
+		index = newR3DIndex(c, src)
+	}
+	// r3dState fills a tile from the R3D index, for regions without a classic one.
+	r3dState := func(tile *CoverageTile) bool {
+		if index == nil {
+			return false
+		}
+		occupied, err := index.occupied(opt.Zoom, tile.X, tile.Y)
+		if err != nil {
+			return false
+		}
+		tile.Available, tile.Known = occupied, true
+		return true
+	}
 	result := Coverage{Range: r, Tiles: make([]CoverageTile, 0, r.Count())}
 	for x := r.XMin; x <= r.XMax; x++ {
 		for y := r.YMin; y <= r.YMax; y++ {
@@ -69,7 +85,12 @@ func (c *Client) Coverage(ctx context.Context, b Bounds, opt CoverageOptions) (C
 			lat, lon := tile.Center()
 			place, err := c.base.findPlace(lat, lon)
 			if err != nil {
-				tile.Known = true
+				if !r3dState(&tile) {
+					tile.Known = true
+				}
+				if tile.Available {
+					result.Available++
+				}
 				result.Tiles = append(result.Tiles, tile)
 				continue
 			}
@@ -79,6 +100,9 @@ func (c *Client) Coverage(ctx context.Context, b Bounds, opt CoverageOptions) (C
 				scanners[place.Region] = scan
 			}
 			tile.Available, tile.Known = scan.anyHeight(place, opt.Zoom, y, x, opt.HeightLayers)
+			if !tile.Known {
+				r3dState(&tile)
+			}
 			if tile.Available {
 				result.Available++
 			}

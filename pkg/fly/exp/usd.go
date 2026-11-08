@@ -11,6 +11,7 @@ import (
 	"runtime/debug"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/Henkek221/orbis/pkg/fly/c3m"
 )
@@ -29,7 +30,68 @@ type USDExport struct {
 	out       *bufio.Writer
 	file      *os.File
 	meshes    int
+	splats    int
 	usdzPath  string
+}
+
+// SetOrigin fixes the local frame origin (ECEF) before the first tile.
+func (e *USDExport) SetOrigin(ecef [3]float64) {
+	e.origin = ecef
+	e.originSet = true
+}
+
+// Splats writes one batch of soft triangles as a Mesh with per-vertex
+// displayColor and displayOpacity.
+func (e *USDExport) Splats(splats []Splat) error {
+	if len(splats) == 0 {
+		return nil
+	}
+	if !e.originSet {
+		e.SetOrigin(splats[0].Corners[0])
+	}
+	frame := localFrame{latRad: e.latRad, lonRad: e.lonRad, origin: e.origin}
+	e.splats++
+	w := e.out
+	fmt.Fprintf(w, "    def Mesh \"splats_%d\"\n    {\n        uniform token subdivisionScheme = \"none\"\n        uniform bool doubleSided = 1\n", e.splats)
+	w.WriteString("        int[] faceVertexCounts = [")
+	for i := range splats {
+		if i > 0 {
+			w.WriteString(", ")
+		}
+		w.WriteString("3")
+	}
+	w.WriteString("]\n        int[] faceVertexIndices = [")
+	for i := 0; i < 3*len(splats); i++ {
+		if i > 0 {
+			w.WriteString(", ")
+		}
+		w.WriteString(strconv.Itoa(i))
+	}
+	w.WriteString("]\n        point3f[] points = [")
+	var colors, opacity []string
+	for i, s := range splats {
+		rgba := [4]float64{0.5, 0.5, 0.5, 1}
+		for k, v := range s.RGBA {
+			if !math.IsNaN(float64(v)) && !math.IsInf(float64(v), 0) {
+				rgba[k] = math.Min(math.Max(float64(v), 0), 1)
+			}
+		}
+		for j, corner := range s.Corners {
+			if i > 0 || j > 0 {
+				w.WriteString(", ")
+			}
+			p := frame.toLocal(corner)
+			fmt.Fprintf(w, "(%s, %s, %s)", ftoa(p.x), ftoa(p.y), ftoa(p.z))
+			colors = append(colors, fmt.Sprintf("(%s, %s, %s)", ftoa(rgba[0]), ftoa(rgba[1]), ftoa(rgba[2])))
+			opacity = append(opacity, ftoa(rgba[3]))
+		}
+	}
+	w.WriteString("]\n        color3f[] primvars:displayColor = [")
+	w.WriteString(strings.Join(colors, ", "))
+	w.WriteString("] (\n            interpolation = \"vertex\"\n        )\n        float[] primvars:displayOpacity = [")
+	w.WriteString(strings.Join(opacity, ", "))
+	w.WriteString("] (\n            interpolation = \"vertex\"\n        )\n    }\n\n")
+	return nil
 }
 
 // NewUSD prepares dir/name.usda and, if possible, dir/name.usdz.
@@ -269,7 +331,7 @@ func (e *USDExport) Close() error {
 	if err := e.file.Close(); err != nil {
 		return err
 	}
-	if e.meshes == 0 {
+	if e.meshes == 0 && e.splats == 0 {
 		return nil
 	}
 	tool, err := exec.LookPath("usdzip")

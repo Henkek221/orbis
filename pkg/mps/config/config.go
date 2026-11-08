@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -43,7 +44,29 @@ func FromJSONFile(file string) (cnf Config, err error) {
 	if cnf.TokenP1 == "" {
 		cnf.TokenP1 = discoveredTokenP1()
 	}
+	cnf.ResourceManifestURL = CurrentIdentity(cnf.ResourceManifestURL)
 	return
+}
+
+// CurrentIdentity rewrites the device identity of an Apple geo manifest URL
+// (hardware, os, os_build, os_version) to the current default. Configs and
+// kvasir output often carry an old identity, and Apple then withholds the
+// newer tile styles. Other URLs are returned unchanged.
+func CurrentIdentity(manifestURL string) string {
+	u, err := url.Parse(manifestURL)
+	if err != nil || !strings.HasSuffix(u.Path, "/geo_manifest/dynamic/config") {
+		return manifestURL
+	}
+	def, err := url.Parse(defaultResourceManifestURL)
+	if err != nil {
+		return manifestURL
+	}
+	q, dq := u.Query(), def.Query()
+	for _, key := range []string{"hardware", "os", "os_build", "os_version"} {
+		q.Set(key, dq.Get(key))
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func (config Config) IsValid() bool {

@@ -20,7 +20,7 @@ func runExport(args []string) int {
 	home := fs.String("home", "", "data directory (config.json, cache)")
 	out := fs.String("out", ".", "directory that receives the export folder")
 	name := fs.String("name", "", "export name (default: the place or the coordinates)")
-	format := fs.String("format", "glb", "comma-separated outputs: glb, usdz, obj, minecraft")
+	format := fs.String("format", "glb,splats", "comma-separated outputs: glb, splats, usdz, obj, minecraft")
 	zoom := fs.Int("zoom", orbis.DefaultZoom, "tile level 13-20; 20 is source quality")
 	heights := fs.Int("heights", orbis.DefaultHeightLayers, "octree height layers to scan; raise for skyscrapers")
 	parallel := fs.Int("parallel", orbis.DefaultParallel, "concurrent downloads")
@@ -60,6 +60,8 @@ func runExport(args []string) int {
 		switch strings.ToLower(strings.TrimSpace(f)) {
 		case "glb", "gltf":
 			req.GLB = true
+		case "splats", "ply":
+			req.Splats = true
 		case "usd", "usdz", "usda":
 			req.USD = true
 		case "obj":
@@ -68,7 +70,7 @@ func runExport(args []string) int {
 			req.Minecraft = true
 		case "":
 		default:
-			return fail(fmt.Errorf("unknown format %q (use glb, usdz, obj, minecraft)", f))
+			return fail(fmt.Errorf("unknown format %q (use glb, splats, usdz, obj, minecraft)", f))
 		}
 	}
 	req = req.Normalize()
@@ -100,7 +102,10 @@ func runExport(args []string) int {
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(result)
 	} else {
-		fmt.Fprintf(stdout, "%d tiles from region %s in %s\n", result.Exported, result.Region.Name, time.Since(started).Round(time.Second))
+		fmt.Fprintf(stdout, "%d mesh tiles from %s (%s) in %s\n", result.Exported, regionLabel(result), result.Format, time.Since(started).Round(time.Second))
+		if result.SplatsPLY != "" {
+			fmt.Fprintf(stdout, "splats:    %s (%d Gaussians)\n", result.SplatsPLY, result.SplatCount)
+		}
 		if result.GLB != "" {
 			fmt.Fprintln(stdout, "glb:      ", result.GLB)
 		}
@@ -119,7 +124,7 @@ func runExport(args []string) int {
 	if err != nil {
 		return fail(err)
 	}
-	if result.Exported == 0 {
+	if result.Exported == 0 && result.SplatCount == 0 {
 		fmt.Fprintln(os.Stderr, "orbis: no 3D tiles in this area; try `orbis coverage` with the same area")
 		return 3
 	}
@@ -201,4 +206,11 @@ func (p *progressPrinter) finish() {
 		fmt.Fprintln(os.Stderr)
 		p.drawn = false
 	}
+}
+
+func regionLabel(r orbis.Result) string {
+	if r.Region.Name == "" {
+		return "R3D"
+	}
+	return r.Region.Name
 }

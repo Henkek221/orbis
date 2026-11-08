@@ -1,6 +1,8 @@
 package mps
 
 import (
+	"fmt"
+	"hash/fnv"
 	"os"
 	"path"
 	"time"
@@ -63,7 +65,10 @@ func getSession(cache Cache) (s Session, err error) {
 
 // getResourceManifest fetches resource manifest from cache or web and decodes it
 func getResourceManifest(cache Cache, config config.Config) (rm ResourceManifest, err error) {
-	rawRmCachePath := path.Join(cache.Directory, "ResourceManifest.pbd")
+	// The manifest depends on the URL's device identity, so cache per URL.
+	sum := fnv.New32a()
+	sum.Write([]byte(config.ResourceManifestURL))
+	rawRmCachePath := path.Join(cache.Directory, fmt.Sprintf("ResourceManifest-%08x.pbd", sum.Sum32()))
 	var rawRm []byte
 	var info os.FileInfo
 	if cache.Enabled {

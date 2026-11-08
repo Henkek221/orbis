@@ -30,11 +30,15 @@ type GLBExport struct {
 	originSet bool
 	origin    [3]float64
 
-	bin       bytes.Buffer
-	doc       gltfDocument
+	bin bytes.Buffer
+	doc gltfDocument
+
+	splatPos  []float32
+	splatCol  []float32
 	minBounds [3]float64
 	maxBounds [3]float64
 	triangles int
+	splats    int
 }
 
 // NewGLB prepares a GLB written to path on Close. Latitude and longitude are
@@ -140,9 +144,10 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 				continue
 			}
 			e.triangles += len(indices) / 3
+			indexAccessor := e.addAccessor(e.addView(uint32Bytes(indices), 34963), 5125, len(indices), "SCALAR", nil, nil)
 			prim := gltfPrimitive{
 				Attributes: map[string]int{"POSITION": posAccessor, "NORMAL": normAccessor, "TEXCOORD_0": uvAccessor},
-				Indices:    e.addAccessor(e.addView(uint32Bytes(indices), 34963), 5125, len(indices), "SCALAR", nil, nil),
+				Indices:    &indexAccessor,
 				Mode:       4,
 			}
 			material := group.Material
@@ -166,8 +171,77 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 	return nil
 }
 
+// SetOrigin fixes the local frame origin (ECEF) before the first tile.
+func (e *GLBExport) SetOrigin(ecef [3]float64) {
+	e.origin = ecef
+	e.originSet = true
+}
+
+// Splats adds Apple's soft triangles as vertex-coloured, alpha-blended
+// triangles, so trees show up in any engine. For soft rendering use the PLY.
+func (e *GLBExport) Splats(splats []Splat) error {
+	if !e.originSet && len(splats) > 0 {
+		e.SetOrigin(splats[0].Corners[0])
+	}
+	frame := localFrame{latRad: e.latRad, lonRad: e.lonRad, origin: e.origin}
+	for _, s := range splats {
+		rgba := [4]float32{0.5, 0.5, 0.5, 1}
+		for i, v := range s.RGBA {
+			if !math.IsNaN(float64(v)) && !math.IsInf(float64(v), 0) {
+				rgba[i] = float32(math.Min(math.Max(float64(v), 0), 1))
+			}
+		}
+		for _, corner := range s.Corners {
+			p := frame.toLocal(corner)
+			e.splatPos = append(e.splatPos, float32(p.x), float32(p.y), float32(p.z))
+			e.splatCol = append(e.splatCol, rgba[0], rgba[1], rgba[2], rgba[3])
+			for k, v := range [3]float64{p.x, p.y, p.z} {
+				e.minBounds[k] = math.Min(e.minBounds[k], v)
+				e.maxBounds[k] = math.Max(e.maxBounds[k], v)
+			}
+		}
+	}
+	return nil
+}
+
+func (e *GLBExport) addSplatMesh() {
+	count := len(e.splatPos) / 3
+	if count == 0 {
+		return
+	}
+	minP := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
+	maxP := [3]float64{math.Inf(-1), math.Inf(-1), math.Inf(-1)}
+	for i := 0; i < count; i++ {
+		for k := 0; k < 3; k++ {
+			v := float64(e.splatPos[3*i+k])
+			minP[k] = math.Min(minP[k], v)
+			maxP[k] = math.Max(maxP[k], v)
+		}
+	}
+	pos := e.addAccessor(e.addView(float32Bytes(e.splatPos), 34962), 5126, count, "VEC3", minP[:], maxP[:])
+	col := e.addAccessor(e.addView(float32Bytes(e.splatCol), 34962), 5126, count, "VEC4", nil, nil)
+	e.doc.Materials = append(e.doc.Materials, gltfMaterial{
+		Name:        "splats",
+		DoubleSided: true,
+		AlphaMode:   "BLEND",
+		PBR:         gltfPBR{BaseColorFactor: []float64{1, 1, 1, 1}, MetallicFactor: 0, RoughnessFactor: 1},
+		Extensions:  map[string]any{"KHR_materials_unlit": map[string]any{}},
+	})
+	material := len(e.doc.Materials) - 1
+	e.doc.Meshes = append(e.doc.Meshes, gltfMesh{Name: "splats", Primitives: []gltfPrimitive{{
+		Attributes: map[string]int{"POSITION": pos, "COLOR_0": col},
+		Material:   &material,
+		Mode:       4,
+	}}})
+	meshID := len(e.doc.Meshes) - 1
+	e.doc.Nodes = append(e.doc.Nodes, gltfNode{Name: "splats", Mesh: &meshID})
+	e.doc.Nodes[0].Children = append(e.doc.Nodes[0].Children, len(e.doc.Nodes)-1)
+	e.splats = count / 3
+}
+
 // Close writes the GLB. An export without meshes writes nothing.
 func (e *GLBExport) Close() error {
+	e.addSplatMesh()
 	if len(e.doc.Meshes) == 0 {
 		return nil
 	}
@@ -180,6 +254,7 @@ func (e *GLBExport) Close() error {
 			"boundsMin":  e.minBounds,
 			"boundsMax":  e.maxBounds,
 			"triangles":  e.triangles,
+			"splats":     e.splats,
 			"source":     "Apple Maps 3D data; see Orbis's README for terms",
 		},
 	}
@@ -372,7 +447,7 @@ type gltfMesh struct {
 
 type gltfPrimitive struct {
 	Attributes map[string]int `json:"attributes"`
-	Indices    int            `json:"indices"`
+	Indices    *int           `json:"indices,omitempty"`
 	Material   *int           `json:"material,omitempty"`
 	Mode       int            `json:"mode"`
 }
@@ -380,6 +455,7 @@ type gltfPrimitive struct {
 type gltfMaterial struct {
 	Name        string         `json:"name"`
 	DoubleSided bool           `json:"doubleSided,omitempty"`
+	AlphaMode   string         `json:"alphaMode,omitempty"`
 	PBR         gltfPBR        `json:"pbrMetallicRoughness"`
 	Extensions  map[string]any `json:"extensions,omitempty"`
 }

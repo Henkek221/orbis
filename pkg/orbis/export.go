@@ -49,7 +49,10 @@ type Request struct {
 	GLB bool
 	// USD writes a .usda stage with textures and, on macOS, a packaged .usdz for
 	// Xcode, RealityKit, Reality Composer and Quick Look.
-	USD       bool
+	USD bool
+	// Splats writes Apple's soft triangles (newer regions only) as standard
+	// 3D Gaussian Splatting PLY for splat viewers and engine plugins.
+	Splats    bool
 	Minecraft bool
 	// BlockSize is metres per Minecraft block: 1 keeps real scale, 0.5 doubles
 	// the detail and quadruples the block count.
@@ -67,7 +70,7 @@ type Request struct {
 // Normalize fills zero values with defaults and clamps the block size. Without
 // any output selected it exports OBJ.
 func (r Request) Normalize() Request {
-	if !r.OBJ && !r.GLB && !r.USD && !r.Minecraft && len(r.Writers) == 0 {
+	if !r.OBJ && !r.GLB && !r.USD && !r.Splats && !r.Minecraft && len(r.Writers) == 0 {
 		r.OBJ = true
 	}
 	if r.Zoom == 0 {
@@ -156,8 +159,10 @@ func (p Progress) step(processed, total int) {
 
 // Result describes a finished or partially finished export.
 type Result struct {
-	Name     string `json:"name"`
-	Region   Region `json:"region"`
+	Name   string `json:"name"`
+	Region Region `json:"region"`
+	// Format is "classic" (C3M) or "r3d" (Apple's newer format with splats).
+	Format   string `json:"format"`
 	Requests int    `json:"requests"`
 	Exported int    `json:"exported"`
 	Output   string `json:"output"`
@@ -170,6 +175,9 @@ type Result struct {
 	USDZ string `json:"usdz,omitempty"`
 	// World is the Minecraft save folder, empty when not requested.
 	World string `json:"world,omitempty"`
+	// SplatsPLY is the Gaussian splat file and SplatCount the splats in it.
+	SplatsPLY  string `json:"splats,omitempty"`
+	SplatCount int    `json:"splatCount,omitempty"`
 }
 
 // OBJFileName is the model file inside an export folder.
@@ -185,12 +193,30 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 	scan := c.scanner()
 
 	centerLat, centerLon := req.Bounds.Center()
-	place, err := scan.findPlace(centerLat, centerLon)
-	if err != nil {
-		return Result{}, err
+	place, placeErr := scan.findPlace(centerLat, centerLon)
+	result := Result{Region: regionFromTrigger(place), Requests: req.RequestCount(), Format: "classic"}
+
+	// Classic regions have a C3MM index. Newer ones only serve R3D.
+	directScan := false
+	var src r3dSource
+	if placeErr == nil {
+		progress.logf("region: %s version=%d region=%d", place.Name, place.Version, place.Region)
+		if _, err := scan.getC3mm(place, 0); err != nil {
+			directScan = true
+		}
 	}
-	result := Result{Region: regionFromTrigger(place), Requests: req.RequestCount()}
-	progress.logf("region: %s version=%d region=%d", place.Name, place.Version, place.Region)
+	if placeErr != nil || directScan {
+		if s, err := c.r3d(); err == nil {
+			src = s
+			result.Format = "r3d"
+			directScan = false
+			progress.logf("format: R3D v2 (version %d), meshes and splats", src.version)
+		} else if placeErr != nil {
+			return Result{}, placeErr
+		} else {
+			progress.logf("C3MM index unavailable; direct C3M scan enabled")
+		}
+	}
 
 	tiles := req.Bounds.Tiles(req.Zoom)
 	requests := result.Requests
@@ -206,12 +232,6 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 		return result, err
 	}
 	result.Output = output
-
-	directScan := false
-	if _, err = scan.getC3mm(place, 0); err != nil {
-		directScan = true
-		progress.logf("C3MM index unavailable; direct C3M scan enabled: %v", err)
-	}
 
 	exporter := multiExport(append([]TileWriter(nil), req.Writers...))
 	if req.OBJ {
@@ -239,6 +259,14 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 		exporter = append(exporter, usd)
 		result.USD = usd.Path()
 	}
+	var ply *exp.PLYExport
+	if req.Splats {
+		ply, err = exp.NewPLY(filepath.Join(output, result.Name+"-splats.ply"), centerLat, centerLon)
+		if err != nil {
+			return result, err
+		}
+		exporter = append(exporter, ply)
+	}
 	if req.Minecraft {
 		levelName := strings.TrimSpace(req.Name)
 		if levelName == "" {
@@ -262,7 +290,7 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 	c3m.DisableLogs()
 
 	sem := make(chan struct{}, req.Parallel)
-	tileCh := make(chan c3m.C3M, req.Parallel)
+	tileCh := make(chan tileItem, req.Parallel)
 	var wg sync.WaitGroup
 	var firstErr error
 	var firstErrMu sync.Mutex
@@ -285,27 +313,80 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 		}
 	}
 
-	exported := 0
+	exported, splatCount := 0, 0
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		for tile := range tileCh {
-			if err := exporter.Next(tile, strconv.Itoa(exported)); err != nil {
-				setErr(err)
-				continue
+		originSet := false
+		for item := range tileCh {
+			if !originSet {
+				// One origin for every output, so meshes and splats line up.
+				origin := exp.CentredOrigin(centerLat, centerLon, item.reference)
+				for _, w := range exporter {
+					if o, ok := w.(exp.OriginSetter); ok {
+						o.SetOrigin(origin)
+					}
+				}
+				originSet = true
 			}
-			exported++
+			for _, mesh := range item.meshes {
+				if err := exporter.Next(mesh, strconv.Itoa(exported)); err != nil {
+					setErr(err)
+					continue
+				}
+				exported++
+			}
+			if len(item.splats) > 0 {
+				for _, w := range exporter {
+					if sw, ok := w.(exp.SplatWriter); ok {
+						if err := sw.Splats(item.splats); err != nil {
+							setErr(err)
+						}
+					}
+				}
+				splatCount += len(item.splats)
+			}
 		}
 	}()
 
+	fetch := func(x, y, h int) {
+		defer wg.Done()
+		defer func() { <-sem }()
+		defer markProcessed()
+		if result.Format == "r3d" {
+			item, err := c.fetchR3D(src, req.Zoom, x, y, h)
+			stats.record(err)
+			if err == nil {
+				tileCh <- item
+			}
+			return
+		}
+		tile, err := scan.getTile(place, req.Zoom, y, x, h)
+		stats.record(err)
+		if err != nil {
+			return
+		}
+		tileCh <- tileItem{meshes: []c3m.C3M{tile}, reference: tile.Header.Translation}
+	}
+
+	index := newR3DIndex(c, src)
 scanLoop:
 	for x := tiles.XMin; x <= tiles.XMax; x++ {
 		for y := tiles.YMin; y <= tiles.YMax; y++ {
+			if result.Format == "r3d" {
+				occupied, err := index.occupied(req.Zoom, x, y)
+				if err == nil && !occupied {
+					for h := 0; h < req.HeightLayers; h++ {
+						markProcessed()
+					}
+					continue
+				}
+			}
 			for h := 0; h < req.HeightLayers; h++ {
 				if ctx.Err() != nil {
 					break scanLoop
 				}
-				if !directScan {
+				if result.Format == "classic" && !directScan {
 					hasTile, err := scan.checkTile(place, req.Zoom, y, x, h)
 					if err != nil {
 						stats.record(err)
@@ -325,18 +406,7 @@ scanLoop:
 					break scanLoop
 				}
 				wg.Add(1)
-				x, y, h := x, y, h
-				go func() {
-					defer wg.Done()
-					defer func() { <-sem }()
-					defer markProcessed()
-					tile, err := scan.getTile(place, req.Zoom, y, x, h)
-					stats.record(err)
-					if err != nil {
-						return
-					}
-					tileCh <- tile
-				}()
+				go fetch(x, y, h)
 			}
 		}
 	}
@@ -354,6 +424,15 @@ scanLoop:
 	result.Exported = exported
 	if usd != nil {
 		result.USDZ = usd.USDZPath()
+	}
+	if ply != nil && ply.Count() > 0 {
+		result.SplatsPLY = ply.Path()
+		result.SplatCount = ply.Count()
+	} else if splatCount > 0 {
+		result.SplatCount = splatCount
+	}
+	if splatCount > 0 {
+		progress.logf("splats: %d soft triangles", splatCount)
 	}
 	stats.log(progress, exported)
 	if err := ctx.Err(); err != nil {
