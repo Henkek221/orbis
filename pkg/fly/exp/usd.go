@@ -43,6 +43,13 @@ func (e *USDExport) SetOrigin(ecef [3]float64) {
 // Splats writes one batch of soft triangles as a Mesh with per-vertex
 // displayColor and displayOpacity.
 func (e *USDExport) Splats(splats []Splat) error {
+	kept := splats[:0:0]
+	for _, s := range splats {
+		if visible(s) {
+			kept = append(kept, s)
+		}
+	}
+	splats = kept
 	if len(splats) == 0 {
 		return nil
 	}
@@ -70,11 +77,9 @@ func (e *USDExport) Splats(splats []Splat) error {
 	w.WriteString("]\n        point3f[] points = [")
 	var colors, opacity []string
 	for i, s := range splats {
-		rgba := [4]float64{0.5, 0.5, 0.5, 1}
+		var rgba [4]float64
 		for k, v := range s.RGBA {
-			if !math.IsNaN(float64(v)) && !math.IsInf(float64(v), 0) {
-				rgba[k] = math.Min(math.Max(float64(v), 0), 1)
-			}
+			rgba[k] = math.Min(math.Max(float64(v), 0), 1)
 		}
 		for j, corner := range s.Corners {
 			if i > 0 || j > 0 {

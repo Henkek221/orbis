@@ -84,15 +84,38 @@ func (f Frame) LatLon() (lat, lon float64) {
 	return lat * 180 / math.Pi, lon * 180 / math.Pi
 }
 
-// Soup is the header of a TRICO splat soup: soft triangles with colour and
-// four extra attributes each. Records can be zero.
+// Soup is the header of a TRICO splat soup: soft triangles with colour,
+// normal and material attributes. Records can be zero.
 type Soup struct {
 	Version  uint32
 	Records  uint64
 	Channels uint32
 	Scales   [9]float32
+	// Layout says which attribute channels carry what; it comes from the
+	// splat group and is nil for empty soups.
+	Layout []Attribute
 	// Payload is the still compressed remainder.
 	Payload []byte
+}
+
+// AttributeKind identifies a splat attribute in the soup layout. The numbers
+// are the ones stored in the tile; the meanings follow how Apple's renderer
+// packs them (albedo sRGB + alpha, octahedral normal, roughness and specular
+// weight).
+type AttributeKind int
+
+const (
+	AttrOpacity        AttributeKind = 1 // 1 float
+	AttrAlbedo         AttributeKind = 2 // 3 floats, sRGB 0..1
+	AttrSpecularWeight AttributeKind = 4 // 1 float, 0..~3.2
+	AttrNormal         AttributeKind = 6 // 2 floats, octahedral 0..1
+	AttrRoughness      AttributeKind = 7 // 1 float, 0.05..1
+)
+
+// Attribute is one entry of the soup layout: Rows*Cols consecutive floats.
+type Attribute struct {
+	Kind       AttributeKind
+	Rows, Cols int
 }
 
 // Mesh is the header of a TRICO mesh. Upper height layers often have an empty
@@ -157,9 +180,19 @@ func parseGroup(tag int, body []byte) (Group, error) {
 	if err != nil {
 		return g, err
 	}
+	var layout []Attribute
 	for _, it := range items {
 		b := it.body
 		switch {
+		case tag == GroupSplats && it.tag == 2 && !hasMagic(b, soupMagic):
+			// Attribute layout: a count, then (kind, rows, cols) bytes.
+			if len(b) < 1 || len(b) < 1+3*int(b[0]) {
+				return g, errors.New("bad splat attribute layout")
+			}
+			for i := 0; i < int(b[0]); i++ {
+				e := b[1+3*i:]
+				layout = append(layout, Attribute{Kind: AttributeKind(e[0]), Rows: int(e[1]), Cols: int(e[2])})
+			}
 		case it.tag == 1 && len(b) >= 96:
 			var f Frame
 			for i := 0; i < 9; i++ {
@@ -184,6 +217,9 @@ func parseGroup(tag int, body []byte) (Group, error) {
 		case tag == GroupMesh && it.tag == 3:
 			g.Images = append(g.Images, findImages(b)...)
 		}
+	}
+	if g.Soup != nil {
+		g.Soup.Layout = layout
 	}
 	return g, nil
 }

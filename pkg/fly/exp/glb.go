@@ -35,6 +35,7 @@ type GLBExport struct {
 
 	splatPos  []float32
 	splatCol  []float32
+	splatUV   []float32
 	minBounds [3]float64
 	maxBounds [3]float64
 	triangles int
@@ -184,14 +185,17 @@ func (e *GLBExport) Splats(splats []Splat) error {
 		e.SetOrigin(splats[0].Corners[0])
 	}
 	frame := localFrame{latRad: e.latRad, lonRad: e.lonRad, origin: e.origin}
+	corners := [3][2]float32{{0, 0}, {1, 0}, {0, 1}}
 	for _, s := range splats {
-		rgba := [4]float32{0.5, 0.5, 0.5, 1}
-		for i, v := range s.RGBA {
-			if !math.IsNaN(float64(v)) && !math.IsInf(float64(v), 0) {
-				rgba[i] = float32(math.Min(math.Max(float64(v), 0), 1))
-			}
+		if !visible(s) {
+			continue
 		}
-		for _, corner := range s.Corners {
+		var rgba [4]float32
+		for i, v := range s.RGBA {
+			rgba[i] = float32(math.Min(math.Max(float64(v), 0), 1))
+		}
+		for c, corner := range s.Corners {
+			e.splatUV = append(e.splatUV, corners[c][0], corners[c][1])
 			p := frame.toLocal(corner)
 			e.splatPos = append(e.splatPos, float32(p.x), float32(p.y), float32(p.z))
 			e.splatCol = append(e.splatCol, rgba[0], rgba[1], rgba[2], rgba[3])
@@ -220,16 +224,25 @@ func (e *GLBExport) addSplatMesh() {
 	}
 	pos := e.addAccessor(e.addView(float32Bytes(e.splatPos), 34962), 5126, count, "VEC3", minP[:], maxP[:])
 	col := e.addAccessor(e.addView(float32Bytes(e.splatCol), 34962), 5126, count, "VEC4", nil, nil)
+	uv := e.addAccessor(e.addView(float32Bytes(e.splatUV), 34962), 5126, count, "VEC2", nil, nil)
+	falloff := e.addView(splatFalloffPNG(), 0)
+	e.doc.Images = append(e.doc.Images, gltfImage{BufferView: falloff, MimeType: "image/png"})
+	e.doc.Textures = append(e.doc.Textures, gltfTexture{Source: len(e.doc.Images) - 1, Sampler: 0})
 	e.doc.Materials = append(e.doc.Materials, gltfMaterial{
 		Name:        "splats",
 		DoubleSided: true,
 		AlphaMode:   "BLEND",
-		PBR:         gltfPBR{BaseColorFactor: []float64{1, 1, 1, 1}, MetallicFactor: 0, RoughnessFactor: 1},
-		Extensions:  map[string]any{"KHR_materials_unlit": map[string]any{}},
+		PBR: gltfPBR{
+			BaseColorFactor:  []float64{1, 1, 1, 1},
+			BaseColorTexture: &gltfTextureRef{Index: len(e.doc.Textures) - 1},
+			MetallicFactor:   0,
+			RoughnessFactor:  1,
+		},
+		Extensions: map[string]any{"KHR_materials_unlit": map[string]any{}},
 	})
 	material := len(e.doc.Materials) - 1
 	e.doc.Meshes = append(e.doc.Meshes, gltfMesh{Name: "splats", Primitives: []gltfPrimitive{{
-		Attributes: map[string]int{"POSITION": pos, "COLOR_0": col},
+		Attributes: map[string]int{"POSITION": pos, "COLOR_0": col, "TEXCOORD_0": uv},
 		Material:   &material,
 		Mode:       4,
 	}}})

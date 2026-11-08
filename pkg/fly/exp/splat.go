@@ -2,8 +2,12 @@ package exp
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"math"
 	"os"
 
@@ -155,6 +159,9 @@ func (e *PLYExport) Count() int { return e.count }
 // Record layout: x y z, nx ny nz, f_dc 0..2, opacity (logit), log scales 0..2,
 // rotation quaternion w x y z.
 func gaussianFromTriangle(frame localFrame, s Splat) ([17]float32, bool) {
+	if !visible(s) {
+		return [17]float32{}, false
+	}
 	var p [3]vector3
 	for i := range p {
 		p[i] = frame.toLocal(s.Corners[i])
@@ -188,27 +195,17 @@ func gaussianFromTriangle(frame localFrame, s Splat) ([17]float32, bool) {
 	e1 := add(scale(u, cosT), scale(w, sinT))
 	e2 := cross(n, e1)
 
-	// A little wider than one sigma so neighbouring splats close up like
-	// Apple's soft triangles do.
-	const widen = 1.6
-	s1, s2 := widen*math.Sqrt(l1), widen*math.Sqrt(l2)
-	s3 := 0.1*math.Min(s1, s2) + 0.005
+	// The Gaussian gets the triangle's own covariance and is 1 cm thick.
+	s1, s2 := math.Sqrt(l1), math.Sqrt(l2)
+	const s3 = 0.01
 
 	q := quaternionFromBasis(e1, e2, n)
 	const shC0 = 0.28209479177387814
 	col := [3]float64{}
 	for i := 0; i < 3; i++ {
-		v := float64(s.RGBA[i])
-		if math.IsNaN(v) || math.IsInf(v, 0) {
-			v = 0.5
-		}
-		col[i] = (math.Min(math.Max(v, 0), 1) - 0.5) / shC0
+		col[i] = (math.Min(math.Max(float64(s.RGBA[i]), 0), 1) - 0.5) / shC0
 	}
-	alpha := float64(s.RGBA[3])
-	if math.IsNaN(alpha) || math.IsInf(alpha, 0) {
-		alpha = 1
-	}
-	alpha = math.Min(math.Max(alpha, 0.02), 0.98)
+	alpha := math.Min(math.Max(float64(s.RGBA[3]), 1e-4), 1-1e-4)
 
 	return [17]float32{
 		float32(c.x), float32(c.y), float32(c.z),
@@ -242,6 +239,40 @@ func quaternionFromBasis(a, b, c vector3) [4]float64 {
 	}
 	l := math.Sqrt(w*w + x*x + y*y + z*z)
 	return [4]float64{w / l, x / l, y / l, z / l}
+}
+
+// visible drops splats Apple never shows: zero opacity (thin needles along
+// facades) and missing albedo, which Apple renders black.
+func visible(s Splat) bool {
+	for _, v := range s.RGBA {
+		if math.IsNaN(float64(v)) || math.IsInf(float64(v), 0) {
+			return false
+		}
+	}
+	return s.RGBA[3] > 0
+}
+
+// splatFalloffPNG is an alpha mask over the UV triangle (0,0) (1,0) (0,1):
+// alpha = (3 * min barycentric)^0.5, Apple's soft-triangle window. It makes
+// splats soft in any engine that multiplies texture alpha with vertex colour.
+func splatFalloffPNG() []byte {
+	const n = 64
+	img := image.NewNRGBA(image.Rect(0, 0, n, n))
+	for y := 0; y < n; y++ {
+		for x := 0; x < n; x++ {
+			// glTF UV origin is the top left: v grows downwards.
+			u, v := (float64(x)+0.5)/n, (float64(y)+0.5)/n
+			b := math.Min(math.Min(u, v), 1-u-v)
+			a := 0.0
+			if b > 0 {
+				a = math.Sqrt(math.Min(3*b, 1))
+			}
+			img.SetNRGBA(x, y, color.NRGBA{255, 255, 255, uint8(math.Round(a * 255))})
+		}
+	}
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, img)
+	return buf.Bytes()
 }
 
 func dot(a, b vector3) float64 { return a.x*b.x + a.y*b.y + a.z*b.z }
