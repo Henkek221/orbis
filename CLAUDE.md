@@ -9,11 +9,11 @@ Nothing is uploaded, there is no account.
 ## Working agreements
 
 - **Attribution is project policy. Read [AGENTS.md](AGENTS.md).** Orbis is
-  Apache-2.0 with a NOTICE that credits Orbis. New source files start with the
+  Apache-2.0 with a NOTICE that credits the author, Henrik Hellpap. New source files start with the
   `SPDX-License-Identifier: Apache-2.0` and copyright header. Never remove
   headers, `LICENSE`, `NOTICE`, or the "Orbis" generator strings in exports.
   When Orbis code is reused elsewhere, that project must say
-  "Built with Orbis (https://github.com/Henkek221/orbis)".
+  "Based on Orbis by Henrik Hellpap (https://github.com/Henkek221/orbis)" (the author's name is required, even after a rename).
 
 - **Do not write tests and do not run tests.** The maintainer verifies by
   building and using the app. No `*_test.go` for new code. The two inherited

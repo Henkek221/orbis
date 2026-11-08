@@ -36,7 +36,7 @@ Some things I learned along the way:
 Caveats: this uses an undocumented service, and the data is Apple's and subject
 to their terms, so exports are for research and prototyping, not for shipping.
 The Orbis code itself is Apache-2.0: build on it freely, the one condition is
-crediting Orbis. A few files inherited from earlier reverse-engineering projects
+crediting the author. A few files inherited from earlier reverse-engineering projects
 have no license and are excluded (listed in LICENSING.md).
 
 Happy to answer questions about the formats.

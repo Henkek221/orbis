@@ -61,7 +61,7 @@ func NewGLB(path string, latitude, longitude float64) (*GLBExport, error) {
 		minBounds: [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)},
 		maxBounds: [3]float64{math.Inf(-1), math.Inf(-1), math.Inf(-1)},
 	}
-	e.doc.Asset = gltfAsset{Version: "2.0", Generator: "Orbis (https://github.com/Henkek221/orbis)"}
+	e.doc.Asset = gltfAsset{Version: "2.0", Generator: "Orbis by Henrik Hellpap (https://github.com/Henkek221/orbis)"}
 	e.doc.Samplers = []gltfSampler{{MagFilter: 9729, MinFilter: 9987, WrapS: 33071, WrapT: 33071}}
 	e.doc.Scenes = []gltfScene{{Name: "orbis", Nodes: []int{0}}}
 	e.doc.Nodes = []gltfNode{{Name: "orbis"}}

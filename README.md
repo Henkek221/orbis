@@ -215,14 +215,16 @@ is installed. Without one, GLB/USD materials fall back to grey and OBJ keeps
 
 Build your own tools, games and pipelines on Orbis: the CLI, the `pkg/orbis`
 library, the R3D decoder and the GLB/USD/splat writers are Apache-2.0. The one
-condition is attribution. Credit Orbis wherever you list what you built with:
+condition is attribution: credit the author by name wherever you list what you built with:
 
 ```
-Built with Orbis (https://github.com/Henkek221/orbis)
+Based on Orbis by Henrik Hellpap (https://github.com/Henkek221/orbis)
 ```
+
+The credit names the author. It stays if you fork, rename or rebrand.
 
 Keep [`LICENSE`](LICENSE), [`NOTICE`](NOTICE) and the SPDX headers when you
-copy files. Exports already name Orbis in their metadata (glTF
+copy files. Exports already credit Orbis and its author in their metadata (glTF
 `asset.generator`, USD `generator`, PLY comment). Details in
 [`LICENSING.md`](LICENSING.md); rules for AI coding agents in
 [`AGENTS.md`](AGENTS.md).
@@ -253,10 +255,10 @@ Flyover are trademarks or services of Apple Inc.
   prototyping and interoperability on your own machine. Do not redistribute
   exported geometry or imagery, do not ship it in a product, and do not use it
   to train models.
-- **The code is Apache-2.0, with one rule: name Orbis.** You may use, change
+- **The code is Apache-2.0, with one rule: credit the author.** You may use, change
   and build on Orbis, commercially too. Anything you distribute that contains or
-  derives from it must carry the [`NOTICE`](NOTICE), which credits Orbis with a
-  link ("Built with Orbis"). Put it in your README, docs or credits screen.
+  derives from it must carry the [`NOTICE`](NOTICE): "Based on Orbis by
+  Henrik Hellpap" with the link. Put it in your README, docs or credits screen.
   [`LICENSING.md`](LICENSING.md) has the details and the short list of files
   inherited from the upstream reverse-engineering projects, which published no
   license and are not covered.

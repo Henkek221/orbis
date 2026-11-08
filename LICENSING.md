@@ -1,14 +1,18 @@
 # Licensing
 
 Orbis is meant to be built on. Use it, change it, ship things made with it,
-commercially too. The one rule: **always name Orbis.**
+commercially too. The one rule: **always credit the author, Henrik Hellpap.**
 
 ## The rule
 
 Anything you publish or distribute that contains, is derived from, or was
-substantially built with Orbis code must credit it, for example:
+substantially built with Orbis code must credit the author by name, with the
+link:
 
-> Built with [Orbis](https://github.com/Henkek221/orbis)
+> Based on [Orbis](https://github.com/Henkek221/orbis) by Henrik Hellpap
+
+Renaming, forking or rebranding does not change this: the credit names the
+person, Henrik Hellpap, not only the project name.
 
 Put it where people see credits: your README, docs, a credits or about screen,
 or the release notes. If you copy Orbis files, also keep [`LICENSE`](LICENSE),
@@ -18,7 +22,7 @@ top of each file.
 This is not a favour we ask: it is the condition of the
 [Apache License 2.0](LICENSE) under which the code is released. Section 4(d)
 requires every redistribution and derivative work to carry the contents of
-[`NOTICE`](NOTICE), and that notice is the Orbis credit.
+[`NOTICE`](NOTICE), and that notice is the credit to Henrik Hellpap.
 
 ## What the license covers
 
