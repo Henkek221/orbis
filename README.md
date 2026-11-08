@@ -15,6 +15,8 @@ orbis export --place "Brandenburger Tor" --size 200
 
 ![Brandenburger Tor exported with Orbis: textured mesh plus Apple's splat trees, rendered in three.js](docs/images/berlin.png)
 
+▶ [Watch the 40-second launch film](docs/launch/orbis-launch.mp4) (made with [Remotion](https://www.remotion.dev), source in [`promo/`](promo/)).
+
 > [!IMPORTANT]
 > Orbis is an experimental research project. It uses Apple's undocumented map
 > service. Coverage is incomplete, and the exported data is Apple's and subject

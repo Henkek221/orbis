@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orbis GLB check</title>
+<style>html,body{margin:0;height:100%;background:#0b0f1a;overflow:hidden;font:13px -apple-system,sans-serif;color:#fff}#log{position:fixed;left:12px;top:10px;opacity:.8;white-space:pre}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="log">loading…</div>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+const log = document.getElementById("log");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 1, 5000);
+const controls = new OrbitControls(camera, renderer.domElement);
+new GLTFLoader().load(new URLSearchParams(location.search).get("f") || "model.glb", (gltf) => {
+  scene.add(gltf.scene);
+  const box = new THREE.Box3().setFromObject(gltf.scene);
+  const size = box.getSize(new THREE.Vector3());
+  let tris = 0, meshes = 0;
+  gltf.scene.traverse((o) => { if (o.isMesh) { meshes++; tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; } });
+  camera.position.set(size.x * 0.75, size.y * 1.1 + 60, size.z * 0.75);
+  controls.target.set(0, size.y * 0.25, 0);
+  controls.update();
+  log.textContent = `GLTFLoader ok · ${meshes} meshes · ${tris} triangles · ${size.x.toFixed(0)}×${size.y.toFixed(0)}×${size.z.toFixed(0)} m · unlit=${!!gltf.parser.json.extensionsUsed?.includes("KHR_materials_unlit")}`;
+  window.__orbis = { ok: true, meshes, tris };
+  window.__scene = scene; window.__camera = camera; window.__THREE = THREE;
+  if (new URLSearchParams(location.search).get("double")) gltf.scene.traverse((o) => { if (o.isMesh) o.material.side = THREE.DoubleSide; });
+  if (new URLSearchParams(location.search).get("back")) gltf.scene.traverse((o) => { if (o.isMesh) o.material.side = THREE.BackSide; });
+}, undefined, (e) => { log.textContent = "ERROR " + e; window.__orbis = { ok: false, error: String(e) }; });
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>
