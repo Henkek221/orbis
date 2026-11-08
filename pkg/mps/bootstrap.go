@@ -5,9 +5,9 @@ import (
 	"path"
 	"time"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps/auth"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps/config"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/web"
+	"github.com/Henkek221/mappy/pkg/mps/auth"
+	"github.com/Henkek221/mappy/pkg/mps/config"
+	"github.com/Henkek221/mappy/pkg/web"
 	"google.golang.org/protobuf/proto"
 )
 

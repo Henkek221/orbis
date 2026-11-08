@@ -6,50 +6,52 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 // Get fetches the contents of a URL
 func Get(url string) (data []byte, err error) {
-	res, err := http.Get(url)
-	if err != nil {
-		return
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("http status %d", res.StatusCode)
-		return
-	}
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-	data, err = maybeGunzip(body)
-	return
+	return GetWithCheck(url, func(*http.Response) error { return nil })
 }
 
-// GetWithCheck fetches the contents of a URL if the response passes a check
+// GetWithCheck fetches the contents of a URL if the response passes a check.
+// Network errors and 5xx/429 responses are retried a few times with backoff;
+// a long scan otherwise fails on one dropped TLS handshake.
 func GetWithCheck(url string, check func(*http.Response) error) (data []byte, err error) {
-	res, err := http.Get(url)
+	delay := 400 * time.Millisecond
+	for attempt := 1; ; attempt++ {
+		var retry bool
+		data, retry, err = getOnce(url, check)
+		if err == nil || !retry || attempt == 4 {
+			return data, err
+		}
+		time.Sleep(delay)
+		delay *= 2
+	}
+}
+
+var client = &http.Client{Timeout: 90 * time.Second}
+
+func getOnce(url string, check func(*http.Response) error) (data []byte, retry bool, err error) {
+	res, err := client.Get(url)
 	if err != nil {
-		return
+		return nil, true, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("http status %d", res.StatusCode)
-		return
+		retry = res.StatusCode >= 500 || res.StatusCode == http.StatusTooManyRequests
+		return nil, retry, fmt.Errorf("http status %d", res.StatusCode)
 	}
-	err = check(res)
-	if err != nil {
-		return
+	if err = check(res); err != nil {
+		return nil, false, err
 	}
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return
+		return nil, true, err
 	}
 	data, err = maybeGunzip(body)
-	return
+	return data, false, err
 }
 
 func maybeGunzip(data []byte) ([]byte, error) {

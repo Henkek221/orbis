@@ -13,7 +13,7 @@ build_go() {
   local goarch="$2"
   local output="$3"
   GOOS="$goos" GOARCH="$goarch" CGO_ENABLED=0 \
-    go build -mod=vendor -trimpath -ldflags="-s -w" -o "$output" ./cmd/export-ui
+    go build -mod=vendor -trimpath -ldflags="-s -w -X main.version=$VERSION" -o "$output" ./cmd/mappy
 }
 
 cd "$ROOT"
@@ -48,7 +48,7 @@ cat > "$DIST/work/mac/Mappy.app/Contents/Info.plist" <<'PLIST'
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.1</string>
+  <string>0.2</string>
   <key>CFBundleVersion</key>
   <string>1</string>
   <key>LSMinimumSystemVersion</key>

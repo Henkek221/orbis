@@ -3,7 +3,7 @@ package codec
 import (
 	"bytes"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/bin"
+	"github.com/Henkek221/mappy/pkg/bin"
 )
 
 func (table HuffmanTable) Decode(data []byte, len1 int, len2 int, writeBuf *[]byte) {

@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3m"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/oth"
+	"github.com/Henkek221/mappy/pkg/fly/c3m"
+	"github.com/Henkek221/mappy/pkg/oth"
 )
 
 // texture turns material texture data into block colours. A nil texture means

@@ -9,6 +9,7 @@ dist/
 *.log
 
 # Lokale Prüf- und Aufnahme-Artefakte
+/_*/
 .codex-audit/
 docs/*.mov
 docs/*.mp4

@@ -12,15 +12,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3m"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3mm"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/exp"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps/config"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mth"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/oth"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/web"
+	"github.com/Henkek221/mappy/pkg/fly"
+	"github.com/Henkek221/mappy/pkg/fly/c3m"
+	"github.com/Henkek221/mappy/pkg/fly/c3mm"
+	"github.com/Henkek221/mappy/pkg/fly/exp"
+	"github.com/Henkek221/mappy/pkg/mps"
+	"github.com/Henkek221/mappy/pkg/mps/config"
+	"github.com/Henkek221/mappy/pkg/mth"
+	"github.com/Henkek221/mappy/pkg/oth"
+	"github.com/Henkek221/mappy/pkg/web"
 )
 
 var l = log.New(os.Stderr, "", 0)

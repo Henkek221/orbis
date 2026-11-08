@@ -17,8 +17,7 @@ Abruflogik.
 
 [christiangda/flyover-reverse-engineering](https://github.com/christiangda/flyover-reverse-engineering)
 hat die ursprüngliche Arbeit für neuere Go- und Protobuf-Versionen modernisiert.
-Der Go-Modulpfad im aktuellen Quellcode verweist aus Kompatibilitätsgründen noch
-auf dieses Repository.
+Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/mappy`.
 
 ## Oberfläche und Assets
 
@@ -27,7 +26,7 @@ auf dieses Repository.
   die sichtbaren Basiskartendaten.
 - Das kleine Fahrzeug im Viewer stammt aus den Khronos-glTF-Beispielassets. Die
   zugehörige CC0-Erklärung liegt in
-  [`cmd/export-ui/static/assets/TOY-CAR-LICENSE.txt`](cmd/export-ui/static/assets/TOY-CAR-LICENSE.txt).
+  [`internal/server/static/assets/TOY-CAR-LICENSE.txt`](internal/server/static/assets/TOY-CAR-LICENSE.txt).
 
 ## Was in Mappy neu hinzugekommen ist
 
@@ -38,6 +37,9 @@ auf dieses Repository.
 - Lauf- und Fahrmodus, Licht, Tageszeit und Darstellungsoptionen
 - lokale Wiederherstellung abgeschlossener Exporte
 - Ein-Klick-Builds für macOS, Windows und Linux
+- Kommandozeile `mappy` und Go-Bibliothek `pkg/mappy`
+- GLB- und USD(Z)-Export für Game-Engines und Apple-Plattformen
+- Analyse von Apples neuem 3D-Format R3D v2 (Container, Index, Texturen)
 
 ## Rechtlicher Hinweis
 

@@ -1,8 +1,10 @@
 # Mappy
 
-Select an area on a map, pull Apple's 3D map mesh for it, export it as an OBJ
-model and/or as a playable Minecraft world. A local Go binary serves a browser
-UI on `localhost:8787`. Nothing is uploaded, there is no account.
+Select an area, pull Apple's 3D map mesh for it, export it as GLB, USD(Z), OBJ
+and/or a Minecraft world. One Go binary, `cmd/mappy`, is a CLI (`export`,
+`coverage`, `search`, `regions`, `config`) and serves the browser UI on
+`localhost:8787` (`mappy ui`). All logic lives in the library `pkg/mappy`.
+Nothing is uploaded, there is no account.
 
 ## Working agreements
 
@@ -17,7 +19,8 @@ UI on `localhost:8787`. Nothing is uploaded, there is no account.
   covers them.
 
 ```bash
-go build -mod=vendor ./... && go run -mod=vendor ./cmd/export-ui
+go build -mod=vendor ./... && go run -mod=vendor ./cmd/mappy ui
+go run -mod=vendor ./cmd/mappy export --place "Arc de Triomphe" --size 150
 ```
 
 ## How a tile becomes a file
@@ -32,24 +35,28 @@ config.json (tokenP1)
                   └─ mc.World    → Anvil world save
 ```
 
-The whole scan lives in `exportBounds` in
-[cmd/export-ui/main.go](cmd/export-ui/main.go). Tiles are fetched in parallel
+The whole scan lives in `Client.Export` in
+[pkg/mappy/export.go](pkg/mappy/export.go). Tiles are fetched in parallel
 and funnelled through one channel into a single consumer goroutine, so exporters
 are **not** called concurrently and need no locking.
 
 `multiExport` fans that one tile stream out to every selected format. Adding a
-third format means implementing `exp.Export` (`Next(c3m.C3M, string) error` and
-`Close() error`) and appending it there.
+format means implementing `exp.Export` (`Next(c3m.C3M, string) error` and
+`Close() error`) and appending it there; library users can pass their own via
+`Request.Writers`.
 
 ## Package map
 
 | Path | Role |
 | --- | --- |
-| `cmd/export-ui` | HTTP server, job state, embedded static UI. The only binary users run. |
-| `cmd/export-obj`, `cmd/auth`, `cmd/parse-*` | CLI tools inherited from upstream. |
+| `cmd/mappy` | The binary users run: CLI subcommands, `ui` starts the server. No args from a terminal prints help; launched without a terminal (Finder, Explorer) it starts the UI. |
+| `pkg/mappy` | The toolkit: `Open`/`Connect`, `Export`, `Coverage`, `Region(s)`, geocoding, config helpers, bounds and naming. Server and CLI only call this. |
+| `internal/server` | HTTP API, job state, embedded static UI (`static/`). |
+| `cmd/export-obj`, `cmd/auth`, `cmd/parse-*` | Low-level tools inherited from upstream. |
 | `pkg/mps` | Apple map service: auth, session, ResourceManifest, cache. |
 | `pkg/fly` | Flyover layer: altitude manifest (region → version), C3M and C3MM parsers. |
-| `pkg/fly/exp` | OBJ writer. |
+| `pkg/fly/exp` | OBJ, GLB (`glb.go`) and USD (`usd.go`) writers. GLB/USD share the local frame: origin = export centre at first-tile height, +X east, +Y up, +Z south. |
+| `pkg/fly/r3d` | Apple's new R3D v2 format (style 98) and its C3MM v2 index (style 100): container, frame, textures, index. TRICO geometry streams are not decoded yet. |
 | `pkg/mc` | Minecraft world writer. Own package, no upstream code. |
 | `pkg/oth` | Small shared helpers, including the HEIC converter lookup. |
 
@@ -81,6 +88,16 @@ versions.
 
 ## Non-obvious constraints
 
+- **Manifest identity.** Apple serves the resource manifest per client. The
+  default URL claims macOS 27; the old macOS 11 identity got only 50 of 98
+  styles and none of the new 3D formats. Keep it current.
+- **Two data generations.** ~56 named regions still serve classic C3M (styles
+  14/15). ~1,380 `Reg_z9_*` regions (version 4000+, e.g. Berlin, NYC) answer
+  404/empty there and only serve R3D (style 98, `v=828` from the manifest, `h`
+  required; index style 100). Their coverage shows as "unknown".
+- **Retries.** `pkg/web` retries network errors, 5xx and 429 three times with
+  backoff; one dropped TLS handshake used to fail a whole export.
+
 - **Coordinates.** OBJ and Minecraft both localise to east-north-up metres around
   the first tile's ECEF translation. Minecraft is X east, **Z south**, Y up, so
   north is negated.
@@ -105,12 +122,12 @@ versions.
 
 ## Frontend
 
-Plain HTML, CSS and JS in `cmd/export-ui/static`, embedded with `go:embed`. No
+Plain HTML, CSS and JS in `internal/server/static`, embedded with `go:embed`. No
 build step, no framework. Leaflet and Lucide come from unpkg.
 
 The design language is soft and edible: cream-pink paper, leaf green, berry pink,
 sun orange, large radii, pill buttons. All tokens live in `:root` of
-[styles.css](cmd/export-ui/static/styles.css). Use the variables, never raw hex.
+[styles.css](internal/server/static/styles.css). Use the variables, never raw hex.
 
 The OpenStreetMap raster is pulled into the palette with a filter on
 `.leaflet-tile-pane` only. The overlay pane stays unfiltered so coverage and
@@ -123,6 +140,5 @@ because they are aimed at first-time local setup. Keep that split.
 ## Provenance
 
 Built on `retroplasma/flyover-reverse-engineering` and `christiangda`'s fork; the
-module path is still `github.com/christiangda/flyover-reverse-engineering`. The
-upstream licence is unresolved, so the repo is readable but must not be presented
+module path is now `github.com/Henkek221/mappy`. The upstream licence is unresolved, so the repo is readable but must not be presented
 as OSI open source or redistributed commercially. See README and CREDITS.

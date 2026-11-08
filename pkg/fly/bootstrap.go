@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/web"
+	"github.com/Henkek221/mappy/pkg/mps"
+	"github.com/Henkek221/mappy/pkg/web"
 )
 
 type AltitudeManifest struct {

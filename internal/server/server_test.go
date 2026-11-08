@@ -1,94 +1,14 @@
-package main
+package server
 
 import (
-	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps/config"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mth"
+	"github.com/Henkek221/mappy/pkg/mappy"
 )
-
-func TestSlugifyKeepsHumanPlaceNamesSafe(t *testing.T) {
-	got := slugify("  København H — 2026-07-13  ")
-	want := "københavn-h-2026-07-13"
-	if got != want {
-		t.Fatalf("slugify() = %q, want %q", got, want)
-	}
-}
-
-func TestSmartExportNameFallsBackToCoordinates(t *testing.T) {
-	got := smartExportName(exportRequest{
-		North: 34.01,
-		South: 34.00,
-		West:  -118.50,
-		East:  -118.49,
-	})
-	if got == "" || got[:5] != "area-" {
-		t.Fatalf("smartExportName() = %q, want an area fallback", got)
-	}
-}
-
-func TestAvailableOutputPathAvoidsOverwriting(t *testing.T) {
-	root := t.TempDir()
-	first := filepath.Join(root, "santa-monica-pier")
-	if err := os.Mkdir(first, 0o755); err != nil {
-		t.Fatal(err)
-	}
-
-	got, err := availableOutputPath(root, "santa-monica-pier")
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := filepath.Join(root, "santa-monica-pier-2")
-	if got != want {
-		t.Fatalf("availableOutputPath() = %q, want %q", got, want)
-	}
-}
-
-func TestGeoDistanceMeters(t *testing.T) {
-	got := geoDistanceMeters(0, 0, 0, 1)
-	if got < 111_000 || got > 112_000 {
-		t.Fatalf("geoDistanceMeters() = %f, want about 111.2 km", got)
-	}
-}
-
-func TestRequestCountIncludesHeightLayers(t *testing.T) {
-	req := exportRequest{
-		North: 34.010,
-		South: 34.000,
-		West:  -118.500,
-		East:  -118.490,
-		Zoom:  18,
-		TryH:  12,
-	}
-	xWest, yNorth := mth.LatLonToTileTMS(req.Zoom, req.North, req.West)
-	xEast, ySouth := mth.LatLonToTileTMS(req.Zoom, req.South, req.East)
-	xMin, xMax := minMax(xWest, xEast)
-	yMin, yMax := minMax(ySouth, yNorth)
-	want := (xMax - xMin + 1) * (yMax - yMin + 1) * req.TryH
-	if got := requestCount(req); got != want {
-		t.Fatalf("requestCount() = %d, want %d", got, want)
-	}
-}
-
-func TestConfiguredMaxRequestsCanBeRaised(t *testing.T) {
-	t.Setenv("MAPPY_MAX_REQUESTS", "750000")
-	if got := configuredMaxRequests(); got != 750000 {
-		t.Fatalf("configuredMaxRequests() = %d, want 750000", got)
-	}
-}
-
-func TestCoverageTileFromTMSContainsSourcePoint(t *testing.T) {
-	x, y := 0, 0
-	tile := coverageTileFromTMS(1, x, y)
-	if tile.West != -180 || tile.East != 0 || math.Abs(tile.South-(-85.0511287798066)) > 1e-12 || tile.North != 0 {
-		t.Fatalf("coverageTileFromTMS() = %#v", tile)
-	}
-}
 
 func TestServeJobFileOnlyAfterCompletedExport(t *testing.T) {
 	root := t.TempDir()
@@ -178,8 +98,8 @@ func TestRestoreCompletedExportsMakesViewerAvailableAfterRestart(t *testing.T) {
 }
 
 func TestValidateSetupConfig(t *testing.T) {
-	valid := config.Config{
-		ResourceManifestURL: config.DefaultResourceManifestURL(),
+	valid := mappy.Config{
+		ResourceManifestURL: mappy.DefaultResourceManifestURL(),
 		TokenP1:             "LocalTestToken123",
 	}
 	if err := validateSetupConfig(valid); err != nil {
@@ -201,8 +121,8 @@ func TestValidateSetupConfig(t *testing.T) {
 
 func TestWriteSetupConfigUsesPrivateFilePermissions(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
-	cfg := config.Config{
-		ResourceManifestURL: config.DefaultResourceManifestURL(),
+	cfg := mappy.Config{
+		ResourceManifestURL: mappy.DefaultResourceManifestURL(),
 		TokenP1:             "LocalTestToken123",
 	}
 	if err := writeSetupConfig(path, cfg); err != nil {
@@ -215,7 +135,7 @@ func TestWriteSetupConfigUsesPrivateFilePermissions(t *testing.T) {
 	if got := info.Mode().Perm(); got != 0o600 {
 		t.Fatalf("config permissions = %o, want 600", got)
 	}
-	loaded, err := config.FromJSONFile(path)
+	loaded, err := mappy.LoadConfig(path)
 	if err != nil {
 		t.Fatal(err)
 	}

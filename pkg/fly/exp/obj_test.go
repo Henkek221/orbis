@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3m"
+	"github.com/Henkek221/mappy/pkg/fly/c3m"
 )
 
 func TestLocalizedExportUsesMetersUpAxisAndNormals(t *testing.T) {

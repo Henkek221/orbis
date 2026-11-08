@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-const defaultResourceManifestURL = "https://gspe35-ssl.ls.apple.com/geo_manifest/dynamic/config?application=geod&application_version=1&country_code=US&hardware=MacBookPro11,2&os=osx&os_build=20B29&os_version=11.0.1"
+// defaultResourceManifestURL identifies as a current macOS. Apple serves the
+// manifest per client: an old identity (macOS 11) gets about half the styles,
+// without the newer 3D formats (R3D style 98, index style 100).
+const defaultResourceManifestURL = "https://gspe35-ssl.ls.apple.com/geo_manifest/dynamic/config?application=geod&application_version=1&country_code=US&hardware=Mac16,12&os=osx&os_build=26A434&os_version=27.0.1"
 
 type Config struct {
 	ResourceManifestURL string `json:"resourceManifestURL"`

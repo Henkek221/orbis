@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps/config"
+	"github.com/Henkek221/mappy/pkg/mps/config"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mps"
+	"github.com/Henkek221/mappy/pkg/mps"
 )
 
 var (

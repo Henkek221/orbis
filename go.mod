@@ -1,4 +1,4 @@
-module github.com/christiangda/flyover-reverse-engineering
+module github.com/Henkek221/mappy
 
 go 1.24.3
 

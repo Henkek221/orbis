@@ -6,8 +6,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3mm"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/oth"
+	"github.com/Henkek221/mappy/pkg/fly/c3mm"
+	"github.com/Henkek221/mappy/pkg/oth"
 )
 
 var l = log.New(os.Stderr, "", 0)

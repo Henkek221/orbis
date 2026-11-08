@@ -8,9 +8,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/christiangda/flyover-reverse-engineering/pkg/bin"
-	"github.com/christiangda/flyover-reverse-engineering/pkg/fly/c3m/codec" // Using a non-internal package
-	"github.com/christiangda/flyover-reverse-engineering/pkg/mth"
+	"github.com/Henkek221/mappy/pkg/bin"
+	"github.com/Henkek221/mappy/pkg/fly/c3m/codec" // Using a non-internal package
+	"github.com/Henkek221/mappy/pkg/mth"
 )
 
 var l = log.New(os.Stderr, "", 0)
