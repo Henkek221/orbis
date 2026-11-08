@@ -1,0 +1,16 @@
+Built with Orbis
+https://github.com/Henkek221/orbis
+
+Copyright 2026 Henrik Hellpap
+
+This product includes software from Orbis, licensed under the Apache License,
+Version 2.0. Under section 4(d) of that license, anything you distribute that
+contains or is derived from Orbis must carry this notice: in a NOTICE file, in
+its documentation, or in a credits/about screen. In short: name Orbis and link
+to the repository.
+
+Scope: the Apache License covers the files written for Orbis; LICENSING.md
+lists the exceptions. It does not cover code inherited from
+retroplasma/flyover-reverse-engineering and christiangda's fork (published
+without a license), map data and imagery from Apple, or third-party code under
+vendor/, each of which keeps its own terms.

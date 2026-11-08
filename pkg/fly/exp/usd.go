@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 package exp
 
 import (
@@ -129,7 +132,7 @@ func NewUSD(dir, name string, latitude, longitude float64) (*USDExport, error) {
     metersPerUnit = 1
     upAxis = "Y"
     customLayerData = {
-        string generator = "Orbis"
+        string generator = "Orbis (https://github.com/Henkek221/orbis)"
         double latitude = %s
         double longitude = %s
     }

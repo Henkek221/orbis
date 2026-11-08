@@ -45,7 +45,9 @@ Der Go-Modulpfad lautet inzwischen `github.com/Henkek221/orbis`.
 
 Die ursprünglichen Repositories weisen derzeit keine verlässliche
 `LICENSE`-Datei aus. Eine Nennung der Urheber ist kein Ersatz für eine Lizenz.
-Orbis vergibt deshalb keine pauschale neue Lizenz für geerbte Bestandteile.
+Orbis vergibt deshalb keine Lizenz für die geerbten Dateien; welche das sind,
+steht in [`LICENSING.md`](LICENSING.md). Der eigene Orbis-Code steht unter der
+Apache-2.0-Lizenz mit Pflicht zur Namensnennung über [`NOTICE`](NOTICE).
 
 Apple, Apple Maps und Flyover sind Marken beziehungsweise Dienste von Apple Inc.
 Orbis ist nicht mit Apple verbunden. Für Karten-, 3D- und Exportdaten können

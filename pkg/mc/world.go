@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Package mc turns Apple 3D map meshes into a playable Minecraft world.
 //
 // Nothing here is procedurally generated: every block comes from a triangle of

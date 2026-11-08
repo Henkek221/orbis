@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Prints "<windowID> <x> <y> <w> <h> <title>" for the frontmost large window of an app.
 import CoreGraphics
 import Foundation

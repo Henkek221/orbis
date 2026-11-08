@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

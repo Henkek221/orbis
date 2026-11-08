@@ -8,6 +8,13 @@ Nothing is uploaded, there is no account.
 
 ## Working agreements
 
+- **Attribution is project policy. Read [AGENTS.md](AGENTS.md).** Orbis is
+  Apache-2.0 with a NOTICE that credits Orbis. New source files start with the
+  `SPDX-License-Identifier: Apache-2.0` and copyright header. Never remove
+  headers, `LICENSE`, `NOTICE`, or the "Orbis" generator strings in exports.
+  When Orbis code is reused elsewhere, that project must say
+  "Built with Orbis (https://github.com/Henkek221/orbis)".
+
 - **Do not write tests and do not run tests.** The maintainer verifies by
   building and using the app. No `*_test.go` for new code. The two inherited
   test files may stay.
@@ -142,5 +149,6 @@ because they are aimed at first-time local setup. Keep that split.
 ## Provenance
 
 Built on `retroplasma/flyover-reverse-engineering` and `christiangda`'s fork; the
-module path is now `github.com/Henkek221/orbis`. The upstream licence is unresolved, so the repo is readable but must not be presented
-as OSI open source or redistributed commercially. See README and CREDITS.
+module path is now `github.com/Henkek221/orbis`. Orbis's own files are
+Apache-2.0; the files inherited from upstream (listed in LICENSING.md) have no
+license and are not covered. See LICENSING.md, README and CREDITS.

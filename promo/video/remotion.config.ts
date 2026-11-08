@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 /**
  * Note: When using the Node.JS APIs, the config file
  * doesn't apply. Instead, pass options directly to the APIs.

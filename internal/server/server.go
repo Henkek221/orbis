@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Package server is Orbis's local browser UI: a small HTTP API around
 // pkg/orbis plus the embedded static frontend.
 package server

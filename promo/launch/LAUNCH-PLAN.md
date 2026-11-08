@@ -49,7 +49,7 @@ Maps an diese Daten.
 ## Risiken, ehrlich
 
 - **Apples Nutzungsbedingungen** verbieten das Extrahieren und Scrapen von Kartendaten. Takedowns gegen das seit 2019 öffentliche Vorgänger-Projekt (627 Sterne) sind nicht bekannt, aber ein lauter Launch macht sichtbar. Text überall: lokal, Forschung, Prototyping, Daten nicht weiterverbreiten.
-- **Lizenz:** Teile des Codes stammen aus Repos ohne Lizenz. Deshalb nicht als „open source (MIT)“ bewerben, sondern als „source available“. Wer fragt: ehrlich sagen.
+- **Lizenz:** Eigener Orbis-Code ist Apache-2.0 mit Pflicht zur Namensnennung („Built with Orbis“ über NOTICE). 28 geerbte Upstream-Dateien haben keine Lizenz und sind ausgenommen (LICENSING.md). Also: „Apache-2.0, credit required“ sagen, nicht „100 % open source“. Wer fragt: ehrlich sagen.
 - **Erwartung „ganze Erde“:** Nur sagen, was stimmt: 1.434 Regionen (56 klassisch, 1.378 R3D). Nicht „jeder Ort der Erde“ (Dubai z. B. hat keine 3D-Daten).
 - **Keine Apple-Marken als Branding:** Kein Apple-Logo, kein „Apple Maps Exporter“ im Namen. „Uses Apple's 3D map data“ als beschreibende Aussage ist ok.
 

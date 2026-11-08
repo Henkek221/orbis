@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 package exp
 
 import (
@@ -126,7 +129,7 @@ func (e *PLYExport) Close() error {
 	if err != nil {
 		return err
 	}
-	header := fmt.Sprintf("ply\nformat binary_little_endian 1.0\ncomment Orbis: Apple triangle splats as 3D Gaussians, metres, +X east +Y up +Z south\nelement vertex %d\n", e.count)
+	header := fmt.Sprintf("ply\nformat binary_little_endian 1.0\ncomment Built with Orbis (https://github.com/Henkek221/orbis)\ncomment Orbis: Apple triangle splats as 3D Gaussians, metres, +X east +Y up +Z south\nelement vertex %d\n", e.count)
 	for _, p := range []string{"x", "y", "z", "nx", "ny", "nz", "f_dc_0", "f_dc_1", "f_dc_2", "opacity", "scale_0", "scale_1", "scale_2", "rot_0", "rot_1", "rot_2", "rot_3"} {
 		header += "property float " + p + "\n"
 	}

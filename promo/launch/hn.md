@@ -33,9 +33,10 @@ Some things I learned along the way:
 - In regions that exist in both formats, the textures are byte-identical: the
   new format adds coverage and splats, not resolution.
 
-Caveats: this uses an undocumented service, the data is Apple's and subject to
-their terms, and parts of the code come from earlier reverse-engineering
-projects without a license (credited in the README). So it is source-available
-for research and prototyping, not something to build a product on.
+Caveats: this uses an undocumented service, and the data is Apple's and subject
+to their terms, so exports are for research and prototyping, not for shipping.
+The Orbis code itself is Apache-2.0: build on it freely, the one condition is
+crediting Orbis. A few files inherited from earlier reverse-engineering projects
+have no license and are excluded (listed in LICENSING.md).
 
 Happy to answer questions about the formats.

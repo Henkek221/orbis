@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Package r3d decodes Apple's R3D v2 tiles (style 98), the format that
 // replaced C3M for the newer "Reg_z9_*" regions, and the C3MM v2 occupancy
 // index (style 100).

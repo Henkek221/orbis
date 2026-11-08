@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Package orbis is the toolkit behind the Orbis CLI and browser UI: open a
 // client against Apple's 3D map service, check coverage for an area and export
 // it as OBJ and/or a Minecraft world.

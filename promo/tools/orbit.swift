@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Renders an orbiting camera flight around a model to a transparent PNG sequence.
 // usage: orbit <model> <outdir> <frames> [startDeg] [sweepDeg] [elevDeg] [dist] [width] [height]
 import AppKit

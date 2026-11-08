@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 // Command orbis exports Apple's 3D map mesh for an area as OBJ and/or a
 // Minecraft world, from the command line or a local browser UI.
 package main

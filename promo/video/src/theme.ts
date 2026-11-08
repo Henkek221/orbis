@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Henrik Hellpap. Part of Orbis: https://github.com/Henkek221/orbis
+
 import { Easing } from "remotion";
 
 // Every value here comes from SPEC.md, not from habit.
