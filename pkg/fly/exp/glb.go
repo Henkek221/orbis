@@ -89,7 +89,9 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 			// ENU (x east, y north, z up) to glTF (x east, y up, z south).
 			positions[i] = vector3{x: enu.x, y: enu.z, z: -enu.y}
 		}
-		normals := meshNormals(mesh, positions)
+		// Apple's faces wind clockwise. glTF front faces are counter-clockwise,
+		// so faces are written as a, c, b and the normals flipped to match.
+		normals := outwardNormals(mesh, positions)
 
 		posData := make([]float32, 0, 3*len(positions))
 		minP := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
@@ -132,7 +134,7 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 				if a < 0 || b < 0 || c < 0 || a >= len(positions) || b >= len(positions) || c >= len(positions) {
 					continue
 				}
-				indices = append(indices, uint32(a), uint32(b), uint32(c))
+				indices = append(indices, uint32(a), uint32(c), uint32(b))
 			}
 			if len(indices) == 0 {
 				continue
@@ -242,10 +244,13 @@ func (e *GLBExport) toENU(tile c3m.C3M, vertex c3m.Vertex) vector3 {
 // addMaterial embeds the texture as JPEG. HEIC is converted with a local tool;
 // without one the material stays untextured, since glTF has no HEIC.
 func (e *GLBExport) addMaterial(material c3m.Material, name string) int {
+	// Photogrammetry winding is not consistent across a tile, so materials are
+	// double sided; otherwise engines cull parts of roofs and ground.
 	m := gltfMaterial{
-		Name:       name,
-		PBR:        gltfPBR{BaseColorFactor: []float64{1, 1, 1, 1}, MetallicFactor: 0, RoughnessFactor: 1},
-		Extensions: map[string]any{"KHR_materials_unlit": map[string]any{}},
+		Name:        name,
+		DoubleSided: true,
+		PBR:         gltfPBR{BaseColorFactor: []float64{1, 1, 1, 1}, MetallicFactor: 0, RoughnessFactor: 1},
+		Extensions:  map[string]any{"KHR_materials_unlit": map[string]any{}},
 	}
 	if image := e.jpegFor(material, name); len(image) > 0 {
 		view := e.addView(image, 0)
@@ -300,6 +305,15 @@ func (e *GLBExport) addAccessor(view, componentType, count int, kind string, min
 		BufferView: view, ComponentType: componentType, Count: count, Type: kind, Min: min, Max: max,
 	})
 	return len(e.doc.Accessors) - 1
+}
+
+// outwardNormals are meshNormals reversed, matching the a, c, b winding.
+func outwardNormals(mesh c3m.Mesh, positions []vector3) []vector3 {
+	normals := meshNormals(mesh, positions)
+	for i, n := range normals {
+		normals[i] = vector3{-n.x, -n.y, -n.z}
+	}
+	return normals
 }
 
 func float32Bytes(values []float32) []byte {
@@ -364,9 +378,10 @@ type gltfPrimitive struct {
 }
 
 type gltfMaterial struct {
-	Name       string         `json:"name"`
-	PBR        gltfPBR        `json:"pbrMetallicRoughness"`
-	Extensions map[string]any `json:"extensions,omitempty"`
+	Name        string         `json:"name"`
+	DoubleSided bool           `json:"doubleSided,omitempty"`
+	PBR         gltfPBR        `json:"pbrMetallicRoughness"`
+	Extensions  map[string]any `json:"extensions,omitempty"`
 }
 
 type gltfPBR struct {

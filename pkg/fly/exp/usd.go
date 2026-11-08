@@ -98,7 +98,8 @@ func (e *USDExport) Next(tile c3m.C3M, subPfx string) (err error) {
 			enu := glb.toENU(tile, vtx)
 			positions[i] = vector3{x: enu.x, y: enu.z, z: -enu.y}
 		}
-		normals := meshNormals(mesh, positions)
+		// Clockwise source faces: written as a, c, b, see GLBExport.
+		normals := outwardNormals(mesh, positions)
 
 		groupIDs := make([]int, 0, len(mesh.Groups))
 		for id := range mesh.Groups {
@@ -179,7 +180,7 @@ func (e *USDExport) writeMesh(name string, mesh c3m.Mesh, group c3m.Group, posit
 		if !ok {
 			continue
 		}
-		for _, v := range [3]int32{f.A, f.B, f.C} {
+		for _, v := range [3]int32{f.A, f.C, f.B} {
 			idx, seen := remap[v]
 			if !seen {
 				idx = len(order)
@@ -210,7 +211,7 @@ func (e *USDExport) writeMesh(name string, mesh c3m.Mesh, group c3m.Group, posit
 	} else {
 		fmt.Fprintf(w, "    def Mesh \"%s\"\n", name)
 	}
-	w.WriteString("    {\n        uniform token subdivisionScheme = \"none\"\n")
+	w.WriteString("    {\n        uniform token subdivisionScheme = \"none\"\n        uniform bool doubleSided = 1\n")
 	fmt.Fprintf(w, "        float3[] extent = [(%s, %s, %s), (%s, %s, %s)]\n",
 		ftoa(minP[0]), ftoa(minP[1]), ftoa(minP[2]), ftoa(maxP[0]), ftoa(maxP[1]), ftoa(maxP[2]))
 	w.WriteString("        int[] faceVertexCounts = [")
