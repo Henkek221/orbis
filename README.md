@@ -13,9 +13,9 @@ browser UI. No account, no upload.
 orbis export --place "Brandenburger Tor" --size 200
 ```
 
-![Brandenburger Tor exported with Orbis: textured mesh plus Apple's splat trees, rendered in three.js](docs/images/berlin.png)
+[![Orbis turns the Brandenburger Tor into a game-ready 3D model with Apple's splat trees, then exports Tokyo Tower and the Empire State Building](docs/images/orbis-launch.gif)](docs/launch/orbis-launch.mp4)
 
-▶ [Watch the 40-second launch film](docs/launch/orbis-launch.mp4) (made with [Remotion](https://www.remotion.dev), source in [`promo/`](promo/)).
+▶ [Watch the full 40-second launch film with sound](docs/launch/orbis-launch.mp4) (made with [Remotion](https://www.remotion.dev), source in [`promo/`](promo/)).
 
 > [!IMPORTANT]
 > Orbis is an experimental research project. It uses Apple's undocumented map
