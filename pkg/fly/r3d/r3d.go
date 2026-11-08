@@ -1,12 +1,16 @@
-// Package r3d reads the container of Apple's R3D v2 tiles (style 98), the
-// format that replaced C3M for the newer "Reg_z9_*" regions.
+// Package r3d decodes Apple's R3D v2 tiles (style 98), the format that
+// replaced C3M for the newer "Reg_z9_*" regions, and the C3MM v2 occupancy
+// index (style 100).
 //
-// What is decoded here: the TLV container, the per-group local frame, the
-// header fields of the TRICO splat soup and TRICO mesh, and the embedded texture
-// atlases (HEIC or JPEG, byte for byte). What is not decoded: the compressed
-// vertex, index, UV, normal and splat attribute streams inside the TRICO
-// blocks. They use a custom byte-lane predictor with Huffman stages and an
-// Edgebreaker-style topology, so Mesh and Soup only expose their headers.
+// Parse reads the container: the local frame of each group, the TRICO soup and
+// mesh headers and the texture atlases (HEIC or JPEG, byte for byte).
+// DecodeMesh and DecodeSoup expand the compressed TRICO streams: BYET blocks
+// (byte transitions, successor tables, constants and the J byte-lane coder with
+// Huffman stages), Edgebreaker-style connectivity, parallelogram predicted
+// positions and UVs, and spherically packed normals.
+//
+// The layout was worked out from tile data and Apple's simulator binaries,
+// with the R3D research notes of nmt3325/apple-maps-r3d-research as a guide.
 package r3d
 
 import (
@@ -92,11 +96,14 @@ type Soup struct {
 }
 
 // Mesh is the header of a TRICO mesh. Upper height layers often have an empty
-// mesh and only splats.
+// mesh and only splats. Scales are the quantization steps of positions (m),
+// UVs (atlas pixels) and normal angles (radians). DecodeMesh expands it.
 type Mesh struct {
 	Version uint32
 	Scales  [3]float32
 	Payload []byte
+	// Raw is the whole TRICO block including the header.
+	Raw []byte
 }
 
 // ImageFormat names an embedded texture codec.
@@ -205,7 +212,7 @@ func parseMesh(b []byte) (*Mesh, error) {
 	if len(b) < 20 {
 		return nil, errors.New("short TRICO mesh")
 	}
-	m := &Mesh{Version: binary.LittleEndian.Uint32(b[4:]), Payload: b[20:]}
+	m := &Mesh{Version: binary.LittleEndian.Uint32(b[4:]), Payload: b[20:], Raw: b}
 	for i := range m.Scales {
 		m.Scales[i] = math.Float32frombits(binary.LittleEndian.Uint32(b[8+4*i:]))
 	}
@@ -301,6 +308,39 @@ func jpegEnd(b []byte, start int) int {
 			return -1
 		}
 		o += 2 + length
+	}
+	return -1
+}
+
+// Size returns the pixel size of the atlas: from the HEIF ispe property or the
+// JPEG frame header.
+func (im Image) Size() (width, height int, err error) {
+	b := im.Data
+	switch im.Format {
+	case JPEG:
+		o := 2
+		for o+9 <= len(b) && b[o] == 0xff {
+			marker := b[o+1]
+			if marker >= 0xc0 && marker <= 0xc3 {
+				return int(binary.BigEndian.Uint16(b[o+7:])), int(binary.BigEndian.Uint16(b[o+5:])), nil
+			}
+			o += 2 + int(binary.BigEndian.Uint16(b[o+2:]))
+		}
+	case HEIC:
+		// The first ispe belongs to the primary item; the grid tiles of a
+		// HEIC carry their own, smaller ispe later on.
+		if i := indexOf(b, "ispe"); i >= 0 && i+16 <= len(b) {
+			return int(binary.BigEndian.Uint32(b[i+8:])), int(binary.BigEndian.Uint32(b[i+12:])), nil
+		}
+	}
+	return 0, 0, errors.New("r3d: image size not found")
+}
+
+func indexOf(b []byte, s string) int {
+	for i := 0; i+len(s) <= len(b); i++ {
+		if string(b[i:i+len(s)]) == s {
+			return i
+		}
 	}
 	return -1
 }
