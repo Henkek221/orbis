@@ -318,7 +318,7 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 	go func() {
 		defer close(done)
 		originSet := false
-		for item := range tileCh {
+		write := func(item tileItem) {
 			if !originSet {
 				// One origin for every output, so meshes and splats line up.
 				origin := exp.CentredOrigin(centerLat, centerLon, item.reference)
@@ -345,6 +345,24 @@ func (c *Client) Export(ctx context.Context, req Request, progress Progress) (Re
 					}
 				}
 				splatCount += len(item.splats)
+			}
+		}
+		// Newer regions also serve old Flyover geometry in upper layers of a
+		// column; it z-fights with the new mesh. Hold classic R3D tiles until
+		// the scan ends and keep them only where their column has nothing newer.
+		modern := map[[2]int]bool{}
+		var classic []tileItem
+		for item := range tileCh {
+			if item.classic {
+				classic = append(classic, item)
+				continue
+			}
+			modern[item.column] = true
+			write(item)
+		}
+		for _, item := range classic {
+			if !modern[item.column] {
+				write(item)
 			}
 		}
 	}()

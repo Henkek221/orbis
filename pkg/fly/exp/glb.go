@@ -94,9 +94,9 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 			// ENU (x east, y north, z up) to glTF (x east, y up, z south).
 			positions[i] = vector3{x: enu.x, y: enu.z, z: -enu.y}
 		}
-		// Apple's faces wind clockwise. glTF front faces are counter-clockwise,
-		// so faces are written as a, c, b and the normals flipped to match.
-		normals := outwardNormals(mesh, positions)
+		// glTF front faces are counter-clockwise; Apple's winding varies per piece.
+		mesh = orientMesh(mesh, positions)
+		normals := meshNormals(mesh, positions)
 
 		posData := make([]float32, 0, 3*len(positions))
 		minP := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
@@ -139,7 +139,7 @@ func (e *GLBExport) Next(tile c3m.C3M, subPfx string) (err error) {
 				if a < 0 || b < 0 || c < 0 || a >= len(positions) || b >= len(positions) || c >= len(positions) {
 					continue
 				}
-				indices = append(indices, uint32(a), uint32(c), uint32(b))
+				indices = append(indices, uint32(a), uint32(b), uint32(c))
 			}
 			if len(indices) == 0 {
 				continue
@@ -393,15 +393,6 @@ func (e *GLBExport) addAccessor(view, componentType, count int, kind string, min
 		BufferView: view, ComponentType: componentType, Count: count, Type: kind, Min: min, Max: max,
 	})
 	return len(e.doc.Accessors) - 1
-}
-
-// outwardNormals are meshNormals reversed, matching the a, c, b winding.
-func outwardNormals(mesh c3m.Mesh, positions []vector3) []vector3 {
-	normals := meshNormals(mesh, positions)
-	for i, n := range normals {
-		normals[i] = vector3{-n.x, -n.y, -n.z}
-	}
-	return normals
 }
 
 func float32Bytes(values []float32) []byte {

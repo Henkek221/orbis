@@ -380,3 +380,18 @@ func indexOf(b []byte, s string) int {
 	}
 	return -1
 }
+
+// Classic reports whether a tile is classic Flyover geometry repackaged as
+// R3D: no splat attribute layout, no splats, and a mesh without normals. Newer
+// regions also answer upper h layers with such tiles; they duplicate surfaces
+// of the new photogrammetry and z-fight with it, and Apple's renderer does not
+// show them there. Drop classic tiles in any x/y column that has a non-classic
+// tile. In classic-only regions (for example Paris) keep them all.
+func (t Tile) Classic() bool {
+	for _, g := range t.Groups {
+		if g.Soup != nil && len(g.Soup.Layout) > 0 {
+			return false
+		}
+	}
+	return true
+}

@@ -13,11 +13,13 @@ import (
 type MeshData struct {
 	Positions [][3]float32
 	Faces     [][3]uint32
-	// UVs are normalized to the atlas of their triangle: u right, v down from
-	// the top-left image corner.
+	// UVs are normalized to the atlas of their triangle with the origin at the
+	// top-left image corner: u right, v down (glTF and image convention). For
+	// OBJ or OpenGL use 1-v.
 	UVs     [][2]float32
 	UVFaces [][3]uint32
-	// UVPixels are the same coordinates in atlas pixels.
+	// UVPixels are the coordinates as stored, in atlas pixels with v counted
+	// up from the bottom image edge (the classic C3M convention).
 	UVPixels    [][2]float32
 	Normals     [][3]float32
 	NormalFaces [][3]uint32
@@ -133,7 +135,8 @@ func DecodeMesh(m *Mesh, images []Image) (*MeshData, error) {
 		if a < 0 || int(a) >= len(sizes) {
 			return nil, fmt.Errorf("mesh: triangle uses atlas %d of %d", a, len(sizes))
 		}
-		out.UVs[i] = [2]float32{u / float32(sizes[a][0]), v / float32(sizes[a][1])}
+		// Stored v runs up from the bottom row; flip to the top-left origin.
+		out.UVs[i] = [2]float32{u / float32(sizes[a][0]), 1 - v/float32(sizes[a][1])}
 	}
 
 	// Normals: one packed direction per (vertex, smoothing group); corners

@@ -45,7 +45,10 @@ func (e *USDExport) SetOrigin(ecef [3]float64) {
 func (e *USDExport) Splats(splats []Splat) error {
 	kept := splats[:0:0]
 	for _, s := range splats {
-		if visible(s) {
+		// Quick Look and RealityKit cannot blend splats, so only vegetation is
+		// kept; Apple's gloss and edge splats would turn into hard specks on
+		// sails, glass and facades. Nearly transparent ones would be specks too.
+		if visible(s) && s.RGBA[3] >= 0.08 && vegetation(s) {
 			kept = append(kept, s)
 		}
 	}
@@ -81,11 +84,19 @@ func (e *USDExport) Splats(splats []Splat) error {
 		for k, v := range s.RGBA {
 			rgba[k] = math.Min(math.Max(float64(v), 0), 1)
 		}
+		// Quick Look and RealityKit draw these opaque, so opacity becomes area:
+		// each splat shrinks towards its centre by sqrt(alpha).
+		var local [3]vector3
 		for j, corner := range s.Corners {
+			local[j] = frame.toLocal(corner)
+		}
+		centre := scale(add(add(local[0], local[1]), local[2]), 1.0/3)
+		shrink := math.Sqrt(rgba[3])
+		for j := range local {
 			if i > 0 || j > 0 {
 				w.WriteString(", ")
 			}
-			p := frame.toLocal(corner)
+			p := add(centre, scale(subtract(local[j], centre), shrink))
 			fmt.Fprintf(w, "(%s, %s, %s)", ftoa(p.x), ftoa(p.y), ftoa(p.z))
 			colors = append(colors, fmt.Sprintf("(%s, %s, %s)", ftoa(rgba[0]), ftoa(rgba[1]), ftoa(rgba[2])))
 			opacity = append(opacity, ftoa(rgba[3]))
@@ -165,8 +176,9 @@ func (e *USDExport) Next(tile c3m.C3M, subPfx string) (err error) {
 			enu := glb.toENU(tile, vtx)
 			positions[i] = vector3{x: enu.x, y: enu.z, z: -enu.y}
 		}
-		// Clockwise source faces: written as a, c, b, see GLBExport.
-		normals := outwardNormals(mesh, positions)
+		// Counter-clockwise front faces, oriented per piece, see orientMesh.
+		mesh = orientMesh(mesh, positions)
+		normals := meshNormals(mesh, positions)
 
 		groupIDs := make([]int, 0, len(mesh.Groups))
 		for id := range mesh.Groups {
@@ -247,7 +259,7 @@ func (e *USDExport) writeMesh(name string, mesh c3m.Mesh, group c3m.Group, posit
 		if !ok {
 			continue
 		}
-		for _, v := range [3]int32{f.A, f.C, f.B} {
+		for _, v := range [3]int32{f.A, f.B, f.C} {
 			idx, seen := remap[v]
 			if !seen {
 				idx = len(order)
@@ -361,6 +373,12 @@ func (e *USDExport) Path() string {
 // USDZPath is the packaged file, empty until Close succeeded with usdzip.
 func (e *USDExport) USDZPath() string {
 	return e.usdzPath
+}
+
+// vegetation reports whether a splat is green enough to be a plant.
+func vegetation(s Splat) bool {
+	r, g, b := s.RGBA[0], s.RGBA[1], s.RGBA[2]
+	return g > 0.1 && g > 1.1*r && g > 1.2*b
 }
 
 func ftoa(v float64) string {

@@ -49,6 +49,10 @@ type tileItem struct {
 	meshes    []c3m.C3M
 	splats    []exp.Splat
 	reference [3]float64
+	// classic marks old Flyover geometry repackaged as R3D; column is its
+	// TMS x/y, used to drop it where newer data exists.
+	classic bool
+	column  [2]int
 }
 
 // fetchR3D downloads and decodes one R3D tile. x and y are TMS.
@@ -66,7 +70,7 @@ func (c *Client) fetchR3D(src r3dSource, zoom, x, y, h int) (tileItem, error) {
 	if err != nil {
 		return tileItem{}, err
 	}
-	var item tileItem
+	item := tileItem{classic: tile.Classic(), column: [2]int{x, y}}
 	referenced := false
 	for _, g := range tile.Groups {
 		if g.Frame == nil {
