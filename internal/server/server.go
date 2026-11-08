@@ -122,6 +122,7 @@ type exportRequest struct {
 
 	GLB       bool    `json:"glb"`
 	USD       bool    `json:"usd"`
+	Splats    bool    `json:"splats"`
 	OBJ       bool    `json:"obj"`
 	Minecraft bool    `json:"minecraft"`
 	BlockSize float64 `json:"blockSize"`
@@ -140,6 +141,7 @@ func (req exportRequest) toLibrary() orbis.Request {
 		Parallel:     parallel,
 		GLB:          req.GLB,
 		USD:          req.USD,
+		Splats:       req.Splats,
 		OBJ:          req.OBJ,
 		Minecraft:    req.Minecraft,
 		BlockSize:    req.BlockSize,

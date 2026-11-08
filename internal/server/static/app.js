@@ -36,6 +36,7 @@ const els = {
   parallelInput: document.getElementById("parallelInput"),
   glbInput: document.getElementById("glbInput"),
   usdInput: document.getElementById("usdInput"),
+  splatsInput: document.getElementById("splatsInput"),
   objInput: document.getElementById("objInput"),
   minecraftInput: document.getElementById("minecraftInput"),
   blockSizeInput: document.getElementById("blockSizeInput"),
@@ -156,6 +157,7 @@ map.on("mouseup", (event) => {
 
 els.glbInput.addEventListener("change", updateFormats);
 els.usdInput.addEventListener("change", updateFormats);
+els.splatsInput.addEventListener("change", updateFormats);
 els.objInput.addEventListener("change", updateFormats);
 els.minecraftInput.addEventListener("change", updateFormats);
 els.zoomInput.addEventListener("change", updateSelection);
@@ -251,6 +253,7 @@ function requestFromSelection() {
     parallel: els.parallelInput.checked,
     glb: els.glbInput.checked,
     usd: els.usdInput.checked,
+    splats: els.splatsInput.checked,
     obj: els.objInput.checked,
     minecraft: els.minecraftInput.checked,
     blockSize: Number(els.blockSizeInput.value),
@@ -259,7 +262,7 @@ function requestFromSelection() {
 
 function updateFormats() {
   // At least one format has to stay on, otherwise there is nothing to export.
-  const formats = [els.glbInput, els.usdInput, els.objInput, els.minecraftInput];
+  const formats = [els.glbInput, els.splatsInput, els.usdInput, els.objInput, els.minecraftInput];
   if (!formats.some((input) => input.checked)) els.glbInput.checked = true;
   els.blockSizeField.hidden = !els.minecraftInput.checked;
   for (const input of formats) {
@@ -272,6 +275,7 @@ function updateFormats() {
 function exportLabel() {
   const names = [
     [els.glbInput, "GLB"],
+    [els.splatsInput, "splats"],
     [els.usdInput, "USDZ"],
     [els.objInput, "OBJ"],
     [els.minecraftInput, "Minecraft"],

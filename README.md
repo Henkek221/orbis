@@ -2,10 +2,11 @@
 
 **Export real places as textured 3D models for any engine or app.**
 
-Orbis pulls Apple's photogrammetry mesh for an area and writes it as a single
-`GLB` (Unity, Unreal, Godot, Blender, three.js, Babylon), a `USDZ` (Xcode,
-RealityKit, Reality Composer, Quick Look, visionOS), an `OBJ` package, or a
-Minecraft world. It runs locally as a command-line tool, a Go library, and a
+Orbis pulls Apple's 3D city data for an area, including the newer iOS 27 data
+with its soft splat trees, and writes it as a single `GLB` (Unity, Unreal,
+Godot, Blender, three.js, Babylon), a `USDZ` (Xcode, RealityKit, Reality
+Composer, Quick Look, visionOS), standard Gaussian splats (`PLY`), an `OBJ`
+package, or a Minecraft world. It runs locally as a command-line tool, a Go library, and a
 browser UI. No account, no upload.
 
 ```bash
@@ -50,6 +51,7 @@ once (see [Configuration](#configuration)).
 | Format | Flag | Use it for | Notes |
 | --- | --- | --- | --- |
 | **GLB** (glTF 2.0) | `glb` *(default)* | Unity, Unreal, Godot, Blender, three.js, Babylon, PlayCanvas | One file, embedded JPEG textures, metres, +Y up, unlit photo materials (`KHR_materials_unlit`) |
+| **Gaussian splats** | `splats` *(default)* | SuperSplat, three.js, Babylon, PlayCanvas, Unity/Unreal splat plugins | Apple's soft triangles (newer regions) as 3DGS PLY, same frame as the GLB |
 | **USDZ** / USDA | `usdz` | Xcode, RealityKit, Reality Composer, Quick Look, visionOS | `UsdPreviewSurface`; the `.usdz` is packaged with Apple's `usdzip` (macOS), elsewhere you get `.usda` + `textures/` |
 | **OBJ** | `obj` | Any DCC tool | OBJ + MTL + one JPEG per tile; Z up (east-north-up) |
 | **Minecraft** | `minecraft` | Java Edition 1.20.1+ worlds | Voxelized from the real mesh and photo colours, see [Minecraft](#minecraft-worlds) |
@@ -83,7 +85,7 @@ the last two sized with `--size 250` or `--size 300x200` (metres).
 
 | Flag | Default | |
 | --- | --- | --- |
-| `--format` | `glb` | comma-separated: `glb`, `usdz`, `obj`, `minecraft` |
+| `--format` | `glb,splats` | comma-separated: `glb`, `splats`, `usdz`, `obj`, `minecraft` |
 | `--out` | `.` | directory that receives the export folder |
 | `--name` | place or coordinates | export and folder name |
 | `--zoom` | `20` | 13–20; 20 is source quality, 18 makes much smaller files |
@@ -141,19 +143,22 @@ models open by drag and drop.
 The release ZIPs start the UI by double-click (`Orbis.app`, `ORBIS STARTEN.cmd`,
 `ORBIS STARTEN.sh`) and include a German quick-start file.
 
-## Coverage: classic vs. Apple's new 3D format
+## Coverage: classic and Apple's new 3D format
 
-As of November 2026 Apple serves 3D cities in two generations:
+As of November 2026 Apple serves 3D cities in two generations, and Orbis
+reads both. It picks the right one per region automatically.
 
 | | Classic (C3M) | New (R3D v2, style 98) |
 | --- | --- | --- |
-| Regions | 56 named regions, e.g. Paris, Milan, Madrid, Bordeaux, Seattle, Vancouver, Cincinnati, US national parks | ~1,380 `Reg_z9_*` regions, e.g. Berlin, Hamburg, New York, London |
-| Orbis | **fully supported** | **not yet**: container, index and textures are decoded ([`pkg/fly/r3d`](pkg/fly/r3d)); the compressed geometry codec is work in progress |
-| Extras | — | Apple's own triangle splats (soft, RGBA, view-dependent), height raster (style 99) |
+| Regions | 56 named regions, e.g. Paris, Milan, Madrid, Bordeaux, Seattle, Vancouver, US national parks | ~1,380 regions, e.g. Berlin, Hamburg, New York, London, Tokyo |
+| Geometry | textured mesh | textured mesh **plus Apple's soft triangle splats** (trees, vegetation) |
+| Index | C3MM octree (style 14) | occupancy index (style 100) |
 
-`orbis coverage` shows `?` for tiles of new-format regions. Within classic
-regions, the R3D tiles carry byte-identical textures, so the new format adds
-coverage and splats rather than resolution.
+Example: a 200 × 200 m export around the Brandenburger Tor yields 90 mesh
+tiles and about 250,000 splats in 45 seconds. In regions that exist in both
+formats the textures are byte-identical: the new format adds coverage and
+splats, not resolution. The decoder lives in [`pkg/fly/r3d`](pkg/fly/r3d) and
+matches the classic data within one quantisation step where both exist.
 
 ## Configuration
 
