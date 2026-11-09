@@ -34,30 +34,48 @@ func ScanTokenP1(reader io.Reader) string {
 }
 
 func tokenFromPrintableStrings(reader io.Reader) string {
+	token, _ := scanToken(reader)
+	return token
+}
+
+// scanToken looks for tokenP1 among the printable strings of a GeoServices
+// binary or a dyld shared cache. GeoServices stores it right before its
+// "Maps-Tile-…" header names, which is the strong anchor (sure = true). Older
+// binaries also keep it right after a base62 alphabet string; that anchor is
+// weaker, because other libraries in a shared cache contain similar
+// alphabets, so it is only used when the strong one is missing.
+func scanToken(reader io.Reader) (token string, sure bool) {
 	const maxStringLength = 4096
 
 	chunk := make([]byte, 4*1024*1024)
 	current := make([]byte, 0, 128)
-	expectToken := false
+	afterAlphabet := false
+	previous := ""
+	fallback := ""
 
-	finishString := func() string {
+	// finishString reports true once the strong anchor matched.
+	finishString := func() bool {
 		if len(current) < 4 {
 			current = current[:0]
-			return ""
+			return false
 		}
 		value := string(current)
 		current = current[:0]
 
-		if expectToken {
-			expectToken = false
-			if looksLikeToken(value) {
-				return value
-			}
+		if previous != "" && strings.HasPrefix(value, "Maps-Tile-") {
+			token, sure = previous, true
+			return true
 		}
-		if strings.Contains(value, "xyzABC") {
-			expectToken = true
+		plausible := looksLikeToken(value) && !looksLikeMangledName(value)
+		if afterAlphabet && plausible && fallback == "" {
+			fallback = value
 		}
-		return ""
+		afterAlphabet = strings.Contains(value, "xyzABC")
+		previous = ""
+		if plausible {
+			previous = value
+		}
+		return false
 	}
 
 	for {
@@ -69,17 +87,50 @@ func tokenFromPrintableStrings(reader io.Reader) string {
 				}
 				continue
 			}
-			if token := finishString(); token != "" {
-				return token
+			if finishString() {
+				return token, sure
 			}
 		}
-		if err == io.EOF {
-			return finishString()
-		}
 		if err != nil {
-			return ""
+			if err == io.EOF && finishString() {
+				return token, sure
+			}
+			return fallback, false
 		}
 	}
+}
+
+// looksLikeMangledName reports whether value reads as an Itanium C++ name
+// such as "12SFPWAContext" or "N8Security8RefCountE": length-prefixed
+// identifiers that fill the whole string. Such symbols sit next to alphabet
+// strings in the shared cache and otherwise pass looksLikeToken.
+func looksLikeMangledName(value string) bool {
+	body := value
+	if len(body) > 2 && body[0] == 'N' && body[len(body)-1] == 'E' {
+		body = body[1 : len(body)-1]
+	}
+	if body == "" || body[0] < '1' || body[0] > '9' {
+		return false
+	}
+	for body != "" {
+		digits := 0
+		for digits < len(body) && body[digits] >= '0' && body[digits] <= '9' {
+			digits++
+		}
+		if digits == 0 || digits > 3 {
+			return false
+		}
+		length := 0
+		for _, digit := range body[:digits] {
+			length = length*10 + int(digit-'0')
+		}
+		rest := body[digits:]
+		if length == 0 || length > len(rest) {
+			return false
+		}
+		body = rest[length:]
+	}
+	return true
 }
 
 func looksLikeToken(value string) bool {

@@ -167,7 +167,9 @@ matches the classic data within one quantisation step where both exist.
 Orbis needs a static client value Apple compiles into its `GeoServices`
 library. It is not a personal key, but treat it as private.
 
-- **macOS:** nothing to do; Orbis reads it from the system.
+- **macOS:** nothing to do; Orbis reads it from the system (GeoServices and
+  every dyld shared subcache, macOS 27 included). If that fails, it falls back
+  to the GeoServices binary of an installed iOS simulator runtime.
 - **Windows / Linux:** create a `config.json` once on any Mac and import it:
 
   ```bash

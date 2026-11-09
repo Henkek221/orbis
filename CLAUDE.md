@@ -122,7 +122,13 @@ versions.
 - **Minecraft height.** A world has 384 blocks of height. At 0.5 m per block
   anything above ~190 m is clipped, and the log says how many voxels were lost.
 - **Token discovery is macOS only.** `discover_darwin.go` scrapes the GeoServices
-  binary or the dyld shared cache. On other systems the setup gate accepts a
+  binary, every numbered dyld subcache (macOS 27 keeps GeoServices' strings in
+  `.07`, not `.01`), then installed iOS simulator runtimes. The value sits right
+  before the `Maps-Tile-…` header strings; that is the reliable anchor. The old
+  anchor, right after a base62 alphabet string, is only a fallback: in the
+  shared cache it also precedes C++ symbols such as `12SFPWAContext`, which
+  `looksLikeMangledName` rejects. A wrong value still connects and lists
+  regions but finds no tiles. On other systems the setup gate accepts a
   `config.json` or a path to a GeoServices file, which
   `POST /api/setup/scan` scans with `config.ScanTokenP1`. The companion tool
   `kvasir` produces that `config.json` from an installed simulator runtime.
